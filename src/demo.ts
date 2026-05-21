@@ -302,6 +302,12 @@ const chart = KLineChart.create({
           chart.setPeriod((btn as HTMLElement).dataset.period as any);
         });
       });
+      document.querySelectorAll('#example-toolbar .ind-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const isActive = btn.classList.toggle('active');
+          chart.setIndicators(isActive ? [{ type: 'ma', params: { periods: [5, 10, 20, 60] } }] : []);
+        });
+      });
       return chart;
     },
   },
