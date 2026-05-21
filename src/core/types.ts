@@ -33,6 +33,8 @@ export interface TickChartOptions {
   lunchStart?: number;
   /** 午休结束时间（分钟），默认 1300 = 13:00 */
   lunchEnd?: number;
+  /** 默认展示的数据点数量（0=显示全部，默认 0） */
+  visiblePoints?: number;
 }
 
 /** 图表样式配置 */

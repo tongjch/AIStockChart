@@ -24,6 +24,7 @@ const DEFAULT_TICK_OPTIONS: Required<TickChartOptions> = {
   closeTime: 1500,  // 15:00
   lunchStart: 1130, // 11:30
   lunchEnd: 1300,   // 13:00
+  visiblePoints: 0, // 0=显示全部
 };
 
 export class TickChartRenderer {
@@ -33,6 +34,7 @@ export class TickChartRenderer {
   private pixelRatio: number;
 
   private data: TickData[] = [];
+  private allData: TickData[] = [];
   private tickOptions: Required<TickChartOptions>;
   private state: RenderState | null = null;
   private crosshair: { x: number; y: number } | null = null;
@@ -60,13 +62,25 @@ export class TickChartRenderer {
   /** 设置分时配置 */
   setTickOptions(options: TickChartOptions): void {
     this.tickOptions = { ...DEFAULT_TICK_OPTIONS, ...options };
+    this.applyVisiblePoints();
     this.render();
   }
 
   /** 设置数据 */
   setData(data: TickData[]): void {
-    this.data = data;
+    this.allData = data;
+    this.applyVisiblePoints();
     this.render();
+  }
+
+  /** 根据 visiblePoints 裁剪显示数据 */
+  private applyVisiblePoints(): void {
+    const vp = this.tickOptions.visiblePoints;
+    if (vp > 0 && this.allData.length > vp) {
+      this.data = this.allData.slice(this.allData.length - vp);
+    } else {
+      this.data = [...this.allData];
+    }
   }
 
   /** 设置十字光标 */
