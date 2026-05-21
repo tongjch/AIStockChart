@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KLineChart</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #app { display: flex; flex-direction: column; height: 100vh; padding: 16px; }
+    .toolbar {
+      display: flex; gap: 8px; margin-bottom: 12px; align-items: center;
+    }
+    .toolbar button {
+      padding: 6px 16px; border: 1px solid #3a3a5c; background: #252540;
+      color: #a0a0c0; border-radius: 4px; cursor: pointer; font-size: 13px;
+    }
+    .toolbar button.active { background: #4a4aff; color: #fff; border-color: #4a4aff; }
+    .toolbar button:hover { background: #353560; }
+    .toolbar button.active:hover { background: #5a5aff; }
+    #chart-container {
+      flex: 1; border-radius: 8px; overflow: hidden;
+      border: 1px solid #2a2a4a;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="toolbar">
+      <button class="type-btn active" data-type="kline">K线</button>
+      <button class="type-btn" data-type="tick">分时</button>
+      <button class="period-btn active" data-period="day">日K</button>
+      <button class="period-btn" data-period="week">周K</button>
+      <button class="period-btn" data-period="month">月K</button>
+      <button class="indicator-btn active" data-indicator="ma">MA</button>
+      <button class="indicator-btn" data-indicator="boll">BOLL</button>
+    </div>
+    <div id="chart-container"></div>
+  </div>
+  <script type="module" src="/src/demo.ts"></script>
+</body>
+</html>
