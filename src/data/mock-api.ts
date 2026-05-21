@@ -1,5 +1,6 @@
 import { KLineData, TickData } from './core/types';
-import { generateMockData, generateTickData } from './mock';
+import { generateMockData } from './mock';
+import { generateTickData } from './tick';
 
 // 模拟远程数据 API
 export async function mockFetch(url: string): Promise<Response> {
