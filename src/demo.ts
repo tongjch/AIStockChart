@@ -236,6 +236,58 @@ const chart = KLineChart.create({
       tickOptions: { prevClose: 50.88 },
     }),
   },
+
+  'lazy-load': {
+    name: '分段加载',
+    code: `// dataLoader 配置：拖动到左边缘自动加载更多历史数据
+const chart = KLineChart.create({
+  container: '#chart-container',
+  type: 'kline',
+  data: generateMockData(300, 50),  // 初始加载 300 条
+  indicators: [
+    { type: 'ma', params: { periods: [5, 10, 20, 60] } },
+  ],
+  options: { visibleRange: 80 },
+  dataLoader: {
+    // 每次加载条数
+    pageSize: 300,
+    // 距离左边缘 20 根K线时触发
+    preloadThreshold: 20,
+    // 数据加载回调
+    fetch: async (params) => {
+      const { direction, fromTimestamp, count } = params;
+      const resp = await fetch(
+        \`/api/kline/page?direction=\${direction}\`
+        + (fromTimestamp ? \`&fromTimestamp=\${fromTimestamp}\` : '')
+        + \`&count=\${count}\`
+      );
+      return resp.json();
+    },
+  },
+});
+
+// 向左拖动图表，到达阈值后会自动加载更早的数据
+// 无缝拼接，视图位置保持不变`,
+    render: (c) => KLineChart.create({
+      container: c, type: 'kline',
+      data: generateMockData(300, 50),
+      indicators: [{ type: 'ma', params: { periods: [5, 10, 20, 60] } }],
+      options: { visibleRange: 80 },
+      dataLoader: {
+        pageSize: 300,
+        preloadThreshold: 20,
+        fetch: async (params) => {
+          const { direction, fromTimestamp, count } = params;
+          const resp = await fetch(
+            `/api/kline/page?direction=${direction}`
+            + (fromTimestamp ? `&fromTimestamp=${fromTimestamp}` : '')
+            + `&count=${count}`
+          );
+          return resp.json();
+        },
+      },
+    }),
+  },
 };
 
 // ========== 页面导航 ==========

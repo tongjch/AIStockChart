@@ -150,6 +150,27 @@ export interface KLineChartConfig {
   onClick?: (data: KLineData | TickData | null, index: number) => void;
   /** 十字光标移动回调 */
   onCrosshairMove?: (data: KLineData | TickData | null, index: number) => void;
+  /** 分段加载配置（K线图） */
+  dataLoader?: {
+    /** 加载数据的回调函数 */
+    fetch: (params: DataLoaderParams) => Promise<KLineData[]>;
+    /** 每页数据量（默认 300） */
+    pageSize?: number;
+    /** 提前加载阈值（距离边缘多少根K线时触发，默认 20） */
+    preloadThreshold?: number;
+  };
+}
+
+/** 数据加载器参数 */
+export interface DataLoaderParams {
+  /** 加载方向 */
+  direction: 'prev' | 'next';
+  /** 当前数据首条时间戳（direction='prev'时提供） */
+  fromTimestamp?: number;
+  /** 当前数据末条时间戳（direction='next'时提供） */
+  toTimestamp?: number;
+  /** 请求的数据条数 */
+  count: number;
 }
 
 /** 默认样式（暗色主题） */

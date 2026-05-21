@@ -77,6 +77,17 @@ export class KLineRenderer {
     this.render();
   }
 
+  /** 获取当前偏移量 */
+  getOffset(): number {
+    return this.offset;
+  }
+
+  /** 平移偏移量（加载历史数据后保持视图位置） */
+  shiftOffset(delta: number): void {
+    this.offset += delta;
+    this.render();
+  }
+
   /** 缩放 */
   zoom(delta: number): void {
     const newVisible = clamp(

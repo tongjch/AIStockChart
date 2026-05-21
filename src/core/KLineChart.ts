@@ -1,4 +1,4 @@
-import { KLineData, TickData, ChartOptions, KLineChartConfig, IndicatorConfig, TickChartOptions } from './types';
+import { KLineData, TickData, ChartOptions, KLineChartConfig, IndicatorConfig, TickChartOptions, DataLoaderParams } from './types';
 import { KLineRenderer } from '../renderer/KLineRenderer';
 import { TickChartRenderer } from '../renderer/TickChartRenderer';
 import { IndicatorResult, calcMA, calcBOLL } from '../indicator';
@@ -56,6 +56,14 @@ export class KLineChart {
   private dragging = false;
   private lastX = 0;
 
+  // 分段加载
+  private dataLoader: KLineChartConfig['dataLoader'] = null;
+  private loading = false;
+  private hasMorePrev = true;
+  private hasMoreNext = true;
+  private preloadThreshold = 20;
+  private lastLoadedOffset = 0;
+
   /**
    * 构造函数
    */
@@ -81,6 +89,12 @@ export class KLineChart {
     // 交互开关
     if (config.interaction) {
       chart.interaction = { ...chart.interaction, ...config.interaction };
+    }
+
+    // 分段加载
+    if (config.dataLoader) {
+      chart.dataLoader = config.dataLoader;
+      chart.preloadThreshold = config.dataLoader.preloadThreshold ?? 20;
     }
 
     // 回调
@@ -288,6 +302,96 @@ export class KLineChart {
     if (this.klineRenderer) this.klineRenderer.setData(this.klineData);
   }
 
+  /** 检查是否需要加载更多数据 */
+  private checkLoadMore(): void {
+    if (!this.dataLoader || this.loading || this.chartType !== 'kline' || !this.klineRenderer) return;
+
+    const offset = this.klineRenderer.getOffset();
+    const visible = this.klineData.length;
+    const threshold = this.preloadThreshold;
+
+    // 向左滚动接近数据起点 → 加载更早的数据
+    if (this.hasMorePrev && offset <= threshold) {
+      this.loadPrev();
+    }
+  }
+
+  /** 加载更早的数据（向左/历史方向） */
+  private async loadPrev(): Promise<void> {
+    if (this.loading || !this.hasMorePrev || !this.dataLoader) return;
+    this.loading = true;
+
+    const count = this.dataLoader.pageSize ?? 300;
+    const firstTimestamp = this.rawKlineData[0]?.timestamp;
+
+    try {
+      const newData = await this.dataLoader.fetch({
+        direction: 'prev',
+        fromTimestamp: firstTimestamp,
+        count,
+      });
+
+      if (!newData.length) {
+        this.hasMorePrev = false;
+        return;
+      }
+
+      // 合并到头部
+      this.rawKlineData = [...newData, ...this.rawKlineData];
+
+      // 保持当前滚动位置（加上新数据的偏移量）
+      const addedCount = newData.length;
+      this.applyPeriod();
+      this.applyIndicators();
+      if (this.klineRenderer) {
+        this.klineRenderer.shiftOffset(addedCount);
+      }
+
+      this.lastLoadedOffset = this.klineRenderer?.getOffset() ?? 0;
+    } catch (e) {
+      console.error('KLineChart: failed to load prev page', e);
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  /** 加载更新的数据（向右/未来方向） */
+  async loadNext(): Promise<void> {
+    if (this.loading || !this.hasMoreNext || !this.dataLoader) return;
+    this.loading = true;
+
+    const count = this.dataLoader.pageSize ?? 300;
+    const lastTimestamp = this.rawKlineData[this.rawKlineData.length - 1]?.timestamp;
+
+    try {
+      const newData = await this.dataLoader.fetch({
+        direction: 'next',
+        toTimestamp: lastTimestamp,
+        count,
+      });
+
+      if (!newData.length) {
+        this.hasMoreNext = false;
+        return;
+      }
+
+      this.rawKlineData = [...this.rawKlineData, ...newData];
+      this.applyPeriod();
+      this.applyIndicators();
+    } catch (e) {
+      console.error('KLineChart: failed to load next page', e);
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  /** 重置分段加载状态 */
+  resetLoader(): void {
+    this.hasMorePrev = true;
+    this.hasMoreNext = true;
+    this.loading = false;
+  }
+
   /** 应用指标 */
   private applyIndicators(): void {
     if (!this.indicatorConfigs.length || !this.klineRenderer) return;
@@ -310,7 +414,10 @@ export class KLineChart {
         this.lastX = e.clientX;
         const candleWidth = this.canvas.clientWidth / 80;
         const shift = Math.round(dx / candleWidth);
-        if (shift > 0) (renderer as KLineRenderer).scrollLeft(shift);
+        if (shift > 0) {
+          (renderer as KLineRenderer).scrollLeft(shift);
+          this.checkLoadMore();
+        }
         else if (shift < 0) (renderer as KLineRenderer).scrollRight(-shift);
       } else if (this.interaction.crosshair && renderer) {
         renderer.setCrosshair(x, y);
@@ -385,7 +492,10 @@ export class KLineChart {
         touchStartX = e.touches[0].clientX;
         const candleWidth = this.canvas.clientWidth / 80;
         const shift = Math.round(dx / candleWidth);
-        if (shift > 0) this.klineRenderer.scrollLeft(shift);
+        if (shift > 0) {
+          this.klineRenderer.scrollLeft(shift);
+          this.checkLoadMore();
+        }
         else if (shift < 0) this.klineRenderer.scrollRight(-shift);
       } else if (e.touches.length === 2 && this.interaction.zoom && this.klineRenderer) {
         const dist = Math.hypot(
