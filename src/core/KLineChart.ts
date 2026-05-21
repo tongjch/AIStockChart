@@ -171,11 +171,13 @@ export class KLineChart {
     this.tickData = data;
     if (options) this.tickOptions = options;
     
-    if (this.chartType === 'tick') {
-      this.initTickRenderer();
-      if (options) this.tickRenderer!.setTickOptions(options);
-      this.tickRenderer!.setData(data);
-    }
+    // 自动切换到分时图
+    this.chartType = 'tick';
+    this.klineRenderer = null;
+    this.tickRenderer = null;
+    this.initTickRenderer();
+    if (options) this.tickRenderer!.setTickOptions(options);
+    this.tickRenderer!.setData(data);
 
     return this;
   }
@@ -193,6 +195,8 @@ export class KLineChart {
   setData(data: KLineData[]): this {
     this.rawKlineData = data;
     this.chartType = 'kline';
+    this.klineRenderer = null;
+    this.tickRenderer = null;
     this.initKlineRenderer();
     this.applyPeriod();
     this.applyIndicators();
