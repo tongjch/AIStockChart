@@ -330,7 +330,8 @@ function cfg(name: string, type: string, def: string, desc: string) {
 }
 
 function renderDocCode(html: string): string {
-  return html.replace(/<div class="doc-code">([\s\S]*?)<\/div>/g, '<div class="doc-code">$1</div>');
+  return html.replace(/<div class="doc-code">([\s\S]*?)<\/div>/g,
+    '<div class="doc-code"><pre style="margin:0"><code class="language-typescript">$1</code></pre></div>');
 }
 
 const rawDoc = `
