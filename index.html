@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
   <title>AIStockChart</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -140,10 +141,21 @@
     .method-table .method-desc { color: #47494e; }
 
     .doc-code {
-      background: #f5f7fa; border: 1px solid #e4e7ed; border-radius: 6px;
+      background: #2d2d2d; border: 1px solid #e4e7ed; border-radius: 6px;
       padding: 14px 16px; margin: 12px 0; overflow-x: auto;
       font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px;
-      line-height: 1.7; color: #47494e;
+      line-height: 1.7; color: #ccc;
+    }
+
+    /* Prism 主题微调适配亮色页面 */
+    .doc-code[class*="language-"] {
+      background: #2d2d2d;
+      margin: 12px 0;
+    }
+    .doc-code code[class*="language-"] {
+      font-size: 13px;
+      line-height: 1.7;
+      text-shadow: none;
     }
 
     .event-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
@@ -199,6 +211,9 @@
       </div>
     </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
   <script type="module" src="/src/demo.ts"></script>
 </body>
 </html>

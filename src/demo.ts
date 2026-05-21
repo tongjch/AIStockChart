@@ -262,7 +262,9 @@ function loadExample(key: string) {
   });
 
   document.getElementById('example-toolbar')!.innerHTML = ex.toolbar ?? '';
-  document.getElementById('code-panel')!.textContent = ex.code;
+  document.getElementById('code-panel')!.innerHTML = (Prism as any).highlight(
+    ex.code, (Prism as any).languages.typescript, 'typescript'
+  );
 
   const container = document.getElementById('chart-container')!;
   container.innerHTML = '';
@@ -327,7 +329,11 @@ function cfg(name: string, type: string, def: string, desc: string) {
   return `<tr><td class="cfg-name">${name}</td><td class="cfg-type">${type}</td><td class="cfg-default">${def}</td><td class="cfg-desc">${desc}</td></tr>`;
 }
 
-document.getElementById('doc-main')!.innerHTML = `
+function renderDocCode(html: string): string {
+  return html.replace(/<div class="doc-code">([\s\S]*?)<\/div>/g, '<div class="doc-code">$1</div>');
+}
+
+const rawDoc = `
 <!-- 总览 -->
 <div id="doc-overview" class="doc-section">
   <h1>AIStockChart <span style="font-size:14px;color:#909399;font-weight:400">v1.0.0</span></h1>
@@ -651,3 +657,6 @@ chart.loadTickFromUrl(url);</div>
   </table>
 </div>
 `;
+
+document.getElementById('doc-main')!.innerHTML = renderDocCode(rawDoc);
+(Prism as any).highlightAllUnder(document.getElementById('doc-main')!);
