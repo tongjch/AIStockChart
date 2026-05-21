@@ -6,78 +6,76 @@
   <title>AIStockChart</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #a0a0c0; }
+    body { background: #f5f7fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #333; }
     #app { display: flex; flex-direction: column; height: 100vh; }
 
     /* 顶部导航 */
     .header {
       display: flex; align-items: center; gap: 24px;
-      padding: 10px 24px; border-bottom: 1px solid #2a2a4a;
-      background: #16162b; flex-shrink: 0;
+      padding: 10px 24px; border-bottom: 1px solid #e4e7ed;
+      background: #fff; flex-shrink: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
-    .header .logo { font-size: 18px; font-weight: 700; color: #fff; }
+    .header .logo { font-size: 18px; font-weight: 700; color: #333; }
     .header .logo span { color: #4d96ff; }
     .nav-tabs { display: flex; gap: 4px; }
     .nav-tab {
       padding: 5px 18px; border-radius: 4px; cursor: pointer;
-      font-size: 13px; color: #8888aa; background: none; border: none;
+      font-size: 13px; color: #606266; background: none; border: none;
     }
-    .nav-tab:hover { color: #c0c0e0; }
-    .nav-tab.active { background: #4a4aff; color: #fff; }
+    .nav-tab:hover { color: #333; background: #f0f2f5; }
+    .nav-tab.active { background: #4d96ff; color: #fff; }
 
     /* 示例页 */
     .page { display: none; flex: 1; overflow: hidden; }
     .page.active { display: flex; }
 
     .sidebar {
-      width: 260px; border-right: 1px solid #2a2a4a;
-      overflow-y: auto; background: #16162b; padding: 12px 0; flex-shrink: 0;
+      width: 260px; border-right: 1px solid #e4e7ed;
+      overflow-y: auto; background: #fff; padding: 12px 0; flex-shrink: 0;
     }
     .sidebar-item {
       padding: 10px 20px; cursor: pointer; font-size: 13px;
-      color: #8888aa; border-left: 3px solid transparent;
+      color: #606266; border-left: 3px solid transparent;
     }
-    .sidebar-item:hover { color: #c0c0e0; background: #1e1e38; }
-    .sidebar-item.active { color: #fff; border-left-color: #4d96ff; background: #1e1e38; }
+    .sidebar-item:hover { color: #333; background: #f5f7fa; }
+    .sidebar-item.active { color: #4d96ff; border-left-color: #4d96ff; background: #ecf5ff; font-weight: 500; }
 
     .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
     .example-toolbar {
       display: flex; gap: 8px; padding: 12px 16px;
-      align-items: center; border-bottom: 1px solid #2a2a4a; flex-wrap: wrap; flex-shrink: 0;
+      align-items: center; border-bottom: 1px solid #e4e7ed; flex-wrap: wrap; flex-shrink: 0;
+      background: #fff;
     }
     .example-toolbar button {
-      padding: 5px 14px; border: 1px solid #3a3a5c; background: #252540;
-      color: #a0a0c0; border-radius: 4px; cursor: pointer; font-size: 12px;
+      padding: 5px 14px; border: 1px solid #dcdfe6; background: #fff;
+      color: #606266; border-radius: 4px; cursor: pointer; font-size: 12px;
     }
-    .example-toolbar button.active { background: #4a4aff; color: #fff; border-color: #4a4aff; }
-    .example-toolbar button:hover { background: #353560; }
+    .example-toolbar button.active { background: #4d96ff; color: #fff; border-color: #4d96ff; }
+    .example-toolbar button:hover:not(.active) { border-color: #4d96ff; color: #4d96ff; }
 
-    .example-body { flex: 1; display: flex; overflow: hidden; }
+    .example-body { flex: 1; display: flex; overflow: hidden; background: #fff; }
     #chart-container { flex: 1; min-width: 0; }
     .code-panel {
-      width: 400px; border-left: 1px solid #2a2a4a;
-      overflow-y: auto; background: #12122a; padding: 16px;
+      width: 400px; border-left: 1px solid #e4e7ed;
+      overflow-y: auto; background: #fafafa; padding: 16px;
       font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px;
-      line-height: 1.6; white-space: pre-wrap; color: #c0c0e0; flex-shrink: 0;
+      line-height: 1.6; white-space: pre-wrap; color: #47494e; flex-shrink: 0;
+      border-top: 1px solid #e4e7ed;
     }
 
-    /* ====== 文档页（ECharts 风格）====== */
-    .doc-layout { display: flex; flex: 1; overflow: hidden; }
+    /* ====== 文档页（ECharts 风格·亮色）====== */
+    .doc-layout { display: flex; flex: 1; overflow: hidden; background: #fff; }
     .doc-nav {
-      width: 240px; border-right: 1px solid #2a2a4a;
-      overflow-y: auto; background: #16162b; flex-shrink: 0;
+      width: 240px; border-right: 1px solid #e4e7ed;
+      overflow-y: auto; background: #fafbfc; flex-shrink: 0;
       padding: 8px 0;
-    }
-    .doc-nav-title {
-      padding: 8px 16px; font-size: 11px; color: #666;
-      text-transform: uppercase; letter-spacing: 1px;
     }
     .doc-nav-item {
       padding: 6px 16px 6px 24px; cursor: pointer;
-      font-size: 13px; color: #8888aa; transition: all 0.15s;
+      font-size: 13px; color: #606266; transition: all 0.15s;
     }
-    .doc-nav-item:hover { color: #c0c0e0; background: #1e1e38; }
-    .doc-nav-item.active { color: #4d96ff; background: #1e1e38; border-right: 2px solid #4d96ff; }
+    .doc-nav-item:hover { color: #333; background: #f0f2f5; }
+    .doc-nav-item.active { color: #4d96ff; background: #ecf5ff; border-right: 2px solid #4d96ff; }
     .doc-nav-item.sub { padding-left: 40px; font-size: 12px; }
 
     .doc-main {
@@ -85,100 +83,79 @@
       min-width: 0;
     }
 
-    /* 文档内容样式 */
-    .doc-main h1 {
-      font-size: 24px; color: #fff; margin-bottom: 6px; font-weight: 600;
-    }
-    .doc-main .desc { color: #8888aa; margin-bottom: 24px; font-size: 14px; }
+    .doc-main h1 { font-size: 24px; color: #1a1a1a; margin-bottom: 6px; font-weight: 600; }
+    .doc-main .desc { color: #909399; margin-bottom: 24px; font-size: 14px; }
 
     .doc-section { margin-bottom: 32px; }
     .doc-section > h2 {
-      font-size: 18px; color: #fff; padding: 10px 0;
-      border-bottom: 1px solid #2a2a4a; margin-bottom: 16px;
+      font-size: 18px; color: #1a1a1a; padding: 10px 0;
+      border-bottom: 1px solid #e4e7ed; margin-bottom: 16px;
       display: flex; align-items: center; gap: 8px;
     }
     .doc-section > h2 .tag {
-      font-size: 11px; background: #252540; color: #8888aa;
+      font-size: 11px; background: #f0f2f5; color: #909399;
       padding: 2px 8px; border-radius: 3px; font-weight: 400;
     }
 
-    /* 配置项表格 */
-    .config-table {
-      width: 100%; border-collapse: collapse; margin-bottom: 16px;
-    }
-    .config-table tr { border-bottom: 1px solid #252540; }
+    .config-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    .config-table tr { border-bottom: 1px solid #f0f2f5; }
     .config-table tr:last-child { border-bottom: none; }
     .config-table td { padding: 10px 12px; vertical-align: top; font-size: 13px; line-height: 1.6; }
     .config-table .cfg-name {
-      color: #ffd93d; font-family: 'SF Mono', 'Fira Code', monospace;
+      color: #d48806; font-family: 'SF Mono', 'Fira Code', monospace;
       font-size: 13px; white-space: nowrap; width: 180px;
     }
-    .config-table .cfg-type {
-      color: #4d96ff; font-size: 12px; width: 120px; white-space: nowrap;
-    }
+    .config-table .cfg-type { color: #4d96ff; font-size: 12px; width: 120px; white-space: nowrap; }
     .config-table .cfg-default {
-      color: #6bcb77; font-size: 12px; width: 140px; white-space: nowrap;
+      color: #389e0d; font-size: 12px; width: 140px; white-space: nowrap;
       font-family: 'SF Mono', 'Fira Code', monospace;
     }
-    .config-table .cfg-desc { color: #a0a0c0; }
+    .config-table .cfg-desc { color: #47494e; }
     .config-table .cfg-desc code {
-      background: #252540; padding: 1px 5px; border-radius: 3px;
-      font-size: 12px; color: #ffd93d;
+      background: #f0f2f5; padding: 1px 5px; border-radius: 3px;
+      font-size: 12px; color: #d48806;
     }
 
-    /* 子配置组 */
     .config-group {
-      background: #16162b; border: 1px solid #2a2a4a;
+      background: #fafbfc; border: 1px solid #e4e7ed;
       border-radius: 6px; margin-bottom: 12px; overflow: hidden;
     }
     .config-group-header {
       padding: 10px 14px; cursor: pointer; display: flex;
       align-items: center; justify-content: space-between;
-      font-size: 14px; color: #fff; background: #1e1e38;
+      font-size: 14px; color: #1a1a1a; background: #fff;
       user-select: none;
     }
-    .config-group-header:hover { background: #252545; }
-    .config-group-header .arrow {
-      transition: transform 0.2s; font-size: 12px; color: #8888aa;
-    }
+    .config-group-header:hover { background: #f5f7fa; }
+    .config-group-header .arrow { transition: transform 0.2s; font-size: 12px; color: #909399; }
     .config-group-header.open .arrow { transform: rotate(90deg); }
     .config-group-body { display: none; }
     .config-group-body.open { display: block; }
 
-    /* 方法表格 */
-    .method-table {
-      width: 100%; border-collapse: collapse; margin-bottom: 16px;
-    }
-    .method-table tr { border-bottom: 1px solid #252540; }
+    .method-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    .method-table tr { border-bottom: 1px solid #f0f2f5; }
     .method-table td { padding: 10px 12px; vertical-align: top; font-size: 13px; }
-    .method-table .method-name {
-      color: #ffd93d; font-family: 'SF Mono', monospace; font-size: 13px;
-    }
-    .method-table .method-ret {
-      color: #4d96ff; font-size: 12px; width: 100px;
-    }
-    .method-table .method-desc { color: #a0a0c0; }
+    .method-table .method-name { color: #d48806; font-family: 'SF Mono', monospace; font-size: 13px; }
+    .method-table .method-ret { color: #4d96ff; font-size: 12px; width: 100px; }
+    .method-table .method-desc { color: #47494e; }
 
-    /* 代码块 */
     .doc-code {
-      background: #12122a; border: 1px solid #2a2a4a; border-radius: 6px;
+      background: #f5f7fa; border: 1px solid #e4e7ed; border-radius: 6px;
       padding: 14px 16px; margin: 12px 0; overflow-x: auto;
       font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px;
-      line-height: 1.7; color: #c0c0e0;
+      line-height: 1.7; color: #47494e;
     }
 
-    /* 事件表格 */
     .event-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-    .event-table tr { border-bottom: 1px solid #252540; }
+    .event-table tr { border-bottom: 1px solid #f0f2f5; }
     .event-table td { padding: 10px 12px; vertical-align: top; font-size: 13px; }
-    .event-table .event-name { color: #ffd93d; font-family: 'SF Mono', monospace; }
-    .event-table .event-desc { color: #a0a0c0; }
+    .event-table .event-name { color: #d48806; font-family: 'SF Mono', monospace; }
+    .event-table .event-desc { color: #47494e; }
 
-    /* 滚动条 */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #3a3a5c; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #4a4a6c; }
+    ::-webkit-scrollbar-thumb { background: #c0c4cc; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #909399; }
   </style>
 </head>
 <body>

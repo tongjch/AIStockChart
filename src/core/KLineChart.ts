@@ -416,7 +416,7 @@ export class KLineChart {
       const tick = d as TickData;
       const prevClose = this.tickOptions?.prevClose ?? tick.price;
       const isUp = tick.price >= prevClose;
-      const color = isUp ? '#00b894' : '#ff6b6b';
+      const color = isUp ? '#ef5350' : '#26a69a';
       const pct = ((tick.price - prevClose) / prevClose * 100).toFixed(2);
       const time = new Date(tick.timestamp);
       const timeStr = `${time.getHours().toString().padStart(2,'0')}:${time.getMinutes().toString().padStart(2,'0')}`;
@@ -430,7 +430,7 @@ export class KLineChart {
     } else {
       const kline = d as KLineData;
       const isUp = kline.close >= kline.open;
-      const color = isUp ? '#00b894' : '#ff6b6b';
+      const color = isUp ? '#ef5350' : '#26a69a';
       el.innerHTML = `
         <span style="color:#8888aa">${new Date(kline.timestamp).toLocaleDateString()}</span>
         <span>开 <b style="color:${color}">${kline.open}</b></span>

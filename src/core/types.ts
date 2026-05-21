@@ -154,24 +154,24 @@ export interface KLineChartConfig {
 
 /** 默认样式（暗色主题） */
 export const DEFAULT_STYLE: ChartStyle = {
-  backgroundColor: '#1a1a2e',
-  gridColor: '#2a2a4a',
+  backgroundColor: '#ffffff',
+  gridColor: '#e4e7ed',
   gridDash: [4, 4],
-  upColor: '#00b894',
-  downColor: '#ff6b6b',
-  textColor: '#8888aa',
-  crosshairColor: '#8888aa',
-  maColors: ['#ffd93d', '#6bcb77', '#4d96ff', '#ff6b6b', '#9b59b6'],
-  volumeUpColor: 'rgba(0, 184, 148, 0.5)',
-  volumeDownColor: 'rgba(255, 107, 107, 0.5)',
+  upColor: '#ef5350',
+  downColor: '#26a69a',
+  textColor: '#606266',
+  crosshairColor: '#909399',
+  maColors: ['#f9a825', '#66bb6a', '#42a5f5', '#ef5350', '#ab47bc'],
+  volumeUpColor: 'rgba(239, 83, 80, 0.5)',
+  volumeDownColor: 'rgba(38, 166, 154, 0.5)',
   candleBorderWidth: 1,
-  indicatorTextColor: '#a0a0c0',
+  indicatorTextColor: '#606266',
   // 分时图样式
-  tickLineColor: '#4d96ff',
-  tickAvgColor: '#ffd93d',
-  tickBaseColor: '#8888aa',
-  tickFillUpColor: 'rgba(0, 184, 148, 0.15)',
-  tickFillDownColor: 'rgba(255, 107, 107, 0.15)',
+  tickLineColor: '#42a5f5',
+  tickAvgColor: '#f9a825',
+  tickBaseColor: '#909399',
+  tickFillUpColor: 'rgba(66, 165, 245, 0.15)',
+  tickFillDownColor: 'rgba(239, 83, 80, 0.15)',
 };
 
 /** 默认配置 */

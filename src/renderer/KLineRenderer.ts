@@ -388,9 +388,9 @@ export class KLineRenderer {
     // 价格标签
     if (y >= priceArea.y && y <= priceArea.y + priceArea.h) {
       const price = maxP - ((y - priceArea.y) / priceArea.h) * (maxP - minP);
-      ctx.fillStyle = '#3a3a5c';
+      ctx.fillStyle = '#e4e7ed';
       ctx.fillRect(priceArea.w, y - 10, options.yAxisWidth, 20);
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = '#333';
       ctx.font = '11px monospace';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
@@ -402,9 +402,9 @@ export class KLineRenderer {
     if (hoverIdx >= 0 && hoverIdx < this.data.length) {
       const dateStr = formatDate(this.data[hoverIdx].timestamp);
       const labelW = 80;
-      ctx.fillStyle = '#3a3a5c';
+      ctx.fillStyle = '#e4e7ed';
       ctx.fillRect(x - labelW / 2, priceArea.y + priceArea.h + 2, labelW, 18);
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = '#333';
       ctx.font = '10px monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';

@@ -487,7 +487,7 @@ export class TickChartRenderer {
       const price = this.state.maxPrice - ((y - priceArea.y) / priceArea.h) * (this.state.maxPrice - this.state.minPrice);
       const pct = ((price - this.tickOptions.prevClose) / this.tickOptions.prevClose * 100).toFixed(2);
       
-      ctx.fillStyle = '#3a3a5c';
+      ctx.fillStyle = '#e4e7ed';
       ctx.fillRect(priceArea.w, y - 10, 80, 20);
       ctx.fillStyle = '#fff';
       ctx.font = '11px monospace';
