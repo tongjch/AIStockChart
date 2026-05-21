@@ -240,6 +240,7 @@ const chart = KLineChart.create({
   'lazy-load': {
     name: '分段加载',
     code: `// dataLoader 配置：拖动到左边缘自动加载更多历史数据
+// dragSpeed: 3 加快拖拽速度（默认1）
 const chart = KLineChart.create({
   container: '#chart-container',
   type: 'kline',
@@ -248,6 +249,7 @@ const chart = KLineChart.create({
     { type: 'ma', params: { periods: [5, 10, 20, 60] } },
   ],
   options: { visibleRange: 80 },
+  interaction: { dragSpeed: 3 },
   dataLoader: {
     // 每次加载条数
     pageSize: 300,
@@ -273,6 +275,7 @@ const chart = KLineChart.create({
       data: generateMockData(300, 50),
       indicators: [{ type: 'ma', params: { periods: [5, 10, 20, 60] } }],
       options: { visibleRange: 80 },
+      interaction: { dragSpeed: 3 },
       dataLoader: {
         pageSize: 300,
         preloadThreshold: 20,
@@ -571,9 +574,11 @@ const chart = KLineChart.create({
     ${cfg('zoom', 'boolean', 'true', '启用鼠标滚轮缩放 K线。分时图固定不可缩放。')}
     ${cfg('crosshair', 'boolean', 'true', '启用十字光标。鼠标移动时显示价格/时间辅助线。')}
     ${cfg('touch', 'boolean', 'true', '启用触摸手势。单指拖拽、双指缩放。')}
+    ${cfg('dragSpeed', 'number', '1', '拖拽速度倍率。值越大拖动越快（如 2 = 两倍速），默认 1。')}
   </table>
   <div class="doc-code">interaction: {
   drag: true,
+  dragSpeed: 1,     // 拖拽速度倍率
   zoom: true,
   crosshair: true,
   touch: true,

@@ -137,6 +137,8 @@ export interface KLineChartConfig {
   interaction?: {
     /** 启用拖拽平移（默认 true） */
     drag?: boolean;
+    /** 拖拽速度倍率（默认 1，越大拖动越快） */
+    dragSpeed?: number;
     /** 启用滚轮缩放（默认 true） */
     zoom?: boolean;
     /** 启用十字光标（默认 true） */

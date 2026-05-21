@@ -43,6 +43,7 @@ export class KLineChart {
   // 交互开关
   private interaction = {
     drag: true,
+    dragSpeed: 1,
     zoom: true,
     crosshair: true,
     touch: true,
@@ -413,7 +414,7 @@ export class KLineChart {
         const dx = e.clientX - this.lastX;
         this.lastX = e.clientX;
         const candleWidth = this.canvas.clientWidth / 80;
-        const shift = Math.round(dx / candleWidth);
+        const shift = Math.round(dx / candleWidth * this.interaction.dragSpeed);
         if (shift > 0) {
           (renderer as KLineRenderer).scrollLeft(shift);
           this.checkLoadMore();
@@ -491,7 +492,7 @@ export class KLineChart {
         const dx = e.touches[0].clientX - touchStartX;
         touchStartX = e.touches[0].clientX;
         const candleWidth = this.canvas.clientWidth / 80;
-        const shift = Math.round(dx / candleWidth);
+        const shift = Math.round(dx / candleWidth * this.interaction.dragSpeed);
         if (shift > 0) {
           this.klineRenderer.scrollLeft(shift);
           this.checkLoadMore();
