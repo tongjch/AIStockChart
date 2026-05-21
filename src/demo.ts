@@ -15,6 +15,14 @@ const chart = KLineChart.create({
   options: { visibleRange: 80 },
 });
 
+// 分时图样式
+const tickStyle = {
+  tickLineColor: '#4d96ff',
+  tickAvgColor: '#ffd93d',
+  tickFillUpColor: 'rgba(77, 150, 255, 0.15)',
+  tickFillDownColor: 'rgba(255, 107, 107, 0.15)',
+};
+
 // 类型切换按钮
 document.querySelectorAll('.type-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -35,6 +43,7 @@ document.querySelectorAll('.type-btn').forEach((btn) => {
       chart.setIndicatorConfigs([{ type: 'ma', params: { periods: [5, 10, 20] } }]);
     } else {
       chart.setTickData(tickData, { prevClose: 50.88 });
+      chart.setTickOptions({ prevClose: 50.88 });
     }
   });
 });
