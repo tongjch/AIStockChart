@@ -1,4 +1,4 @@
-import { KLineData, TickData, ChartOptions, KLineChartConfig, IndicatorConfig, TickChartOptions, DataLoaderParams } from './types';
+import { KLineData, TickData, ChartOptions, KLineChartConfig, IndicatorConfig, TickChartOptions, DataLoaderParams, DataRefreshConfig } from './types';
 import { KLineRenderer } from '../renderer/KLineRenderer';
 import { TickChartRenderer } from '../renderer/TickChartRenderer';
 import { IndicatorResult, calcMA, calcBOLL } from '../indicator';
@@ -64,6 +64,13 @@ export class KLineChart {
   private hasMoreNext = true;
   private preloadThreshold = 20;
   private lastLoadedOffset = 0;
+
+  // 动态刷新
+  private dataRefreshConfig: DataRefreshConfig | null = null;
+  private refreshTimer: ReturnType<typeof setInterval> | null = null;
+  private refreshWs: WebSocket | null = null;
+  private refreshEs: EventSource | null = null;
+  private refreshRetryTimer: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * 构造函数
@@ -138,6 +145,12 @@ export class KLineChart {
           chart.applyIndicators();
         }
       }
+    }
+
+    // 动态数据刷新
+    if (config.dataRefresh) {
+      chart.dataRefreshConfig = config.dataRefresh;
+      chart.startDataRefresh();
     }
 
     if (chart.onLoad) chart.onLoad(chart);
@@ -558,12 +571,188 @@ export class KLineChart {
     }
   }
 
+  // ========== 动态数据刷新 ==========
+
+  /** 启动动态数据刷新 */
+  private startDataRefresh(): void {
+    if (!this.dataRefreshConfig) return;
+    this.stopDataRefresh();
+
+    const cfg = this.dataRefreshConfig;
+    const maxPoints = cfg.maxPoints ?? 5000;
+
+    const processIncoming = (incoming: KLineData[] | TickData[]) => {
+      let merged: KLineData[] | TickData[];
+      if (cfg.merge) {
+        merged = cfg.merge(
+          (this.chartType === 'kline' ? this.klineData : this.tickData) as any,
+          incoming
+        );
+      } else if (cfg.strategy === 'append') {
+        merged = this.mergeAppend(
+          (this.chartType === 'kline' ? this.klineData : this.tickData) as any,
+          incoming
+        );
+      } else {
+        merged = incoming;
+      }
+      if (merged.length > maxPoints) {
+        merged = merged.slice(-maxPoints);
+      }
+      this.applyRefreshData(merged);
+    };
+
+    if (cfg.type === 'poll') {
+      const interval = cfg.interval ?? 5000;
+      const poll = async () => {
+        try {
+          const resp = await fetch(cfg.url);
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          const json = await resp.json();
+          processIncoming(json);
+        } catch (e) {
+          console.error('[DataRefresh poll]', e);
+          this.scheduleRefreshRetry(poll, cfg.retryInterval ?? 3000);
+        }
+      };
+      poll();
+      this.refreshTimer = setInterval(poll, interval);
+    } else if (cfg.type === 'websocket') {
+      try {
+        const ws = new WebSocket(cfg.url);
+        ws.onmessage = (event: MessageEvent) => {
+          try {
+            const incoming = JSON.parse(event.data) as KLineData[] | TickData[];
+            processIncoming(incoming);
+          } catch (e) {
+            console.error('[DataRefresh ws] parse error', e);
+          }
+        };
+        ws.onerror = () => {
+          this.scheduleRefreshRetry(() => this.startDataRefresh(), cfg.retryInterval ?? 3000);
+        };
+        ws.onclose = () => {
+          this.scheduleRefreshRetry(() => this.startDataRefresh(), cfg.retryInterval ?? 3000);
+        };
+        this.refreshWs = ws;
+      } catch (e) {
+        console.error('[DataRefresh ws]', e);
+        this.scheduleRefreshRetry(() => this.startDataRefresh(), cfg.retryInterval ?? 3000);
+      }
+    } else if (cfg.type === 'sse') {
+      try {
+        const es = new EventSource(cfg.url);
+        es.onmessage = (event: MessageEvent) => {
+          try {
+            const incoming = JSON.parse(event.data) as KLineData[] | TickData[];
+            processIncoming(incoming);
+          } catch (e) {
+            console.error('[DataRefresh sse] parse error', e);
+          }
+        };
+        es.onerror = () => {
+          this.scheduleRefreshRetry(() => this.startDataRefresh(), cfg.retryInterval ?? 3000);
+        };
+        this.refreshEs = es;
+      } catch (e) {
+        console.error('[DataRefresh sse]', e);
+        this.scheduleRefreshRetry(() => this.startDataRefresh(), cfg.retryInterval ?? 3000);
+      }
+    }
+  }
+
+  /** 停止动态数据刷新 */
+  private stopDataRefresh(): void {
+    if (this.refreshTimer !== null) { clearInterval(this.refreshTimer); this.refreshTimer = null; }
+    if (this.refreshWs !== null) { this.refreshWs.close(); this.refreshWs = null; }
+    if (this.refreshEs !== null) { this.refreshEs.close(); this.refreshEs = null; }
+    if (this.refreshRetryTimer !== null) { clearTimeout(this.refreshRetryTimer); this.refreshRetryTimer = null; }
+  }
+
+  /** 调度重试 */
+  private scheduleRefreshRetry(fn: () => void, delay: number): void {
+    if (this.refreshRetryTimer !== null) return;
+    this.refreshRetryTimer = setTimeout(() => {
+      this.refreshRetryTimer = null;
+      fn();
+    }, delay);
+  }
+
+  /** 智能追加合并：同时间戳更新最后一条，否则追加 */
+  private mergeAppend(
+    existing: KLineData[] | TickData[],
+    incoming: KLineData[] | TickData[]
+  ): KLineData[] | TickData[] {
+    if (this.chartType === 'kline') {
+      const ext = existing as KLineData[];
+      const inc = incoming as KLineData[];
+      if (ext.length === 0) return inc;
+      for (const item of inc) {
+        if (ext.length > 0 && item.timestamp === ext[ext.length - 1].timestamp) {
+          ext[ext.length - 1] = item;
+        } else {
+          ext.push(item);
+        }
+      }
+      return ext;
+    } else {
+      const ext = existing as TickData[];
+      const inc = incoming as TickData[];
+      if (ext.length === 0) return inc;
+      for (const item of inc) {
+        if (ext.length > 0 && item.timestamp === ext[ext.length - 1].timestamp) {
+          ext[ext.length - 1] = item;
+        } else {
+          ext.push(item);
+        }
+      }
+      return ext;
+    }
+  }
+
+  /** 将合并后的数据应用到图表 */
+  private applyRefreshData(data: KLineData[] | TickData[]): void {
+    if (this.chartType === 'kline') {
+      this.klineData = data as KLineData[];
+      this.rawKlineData = [...this.klineData];
+      this.applyPeriod();
+      this.applyIndicators();
+    } else {
+      this.tickData = data as TickData[];
+      if (this.tickRenderer) {
+        this.tickRenderer.setData(this.tickData);
+        this.tickRenderer.render();
+      }
+    }
+  }
+
   private hideTooltip(): void {
     const el = document.getElementById('kline-tooltip');
     if (el) el.innerHTML = '';
   }
 
+
+  /** 编程式设置K线数据 */
+  setData(data: KLineData[]): this {
+    this.klineData = data;
+    this.rawKlineData = [...data];
+    this.applyPeriod();
+    this.applyIndicators();
+    return this;
+  }
+
+  /** 编程式设置分时数据 */
+  setTickDataArray(data: TickData[]): this {
+    this.tickData = data;
+    if (this.tickRenderer) {
+      this.tickRenderer.setData(data);
+      this.tickRenderer.render();
+    }
+    return this;
+  }
+
   destroy(): void {
+    this.stopDataRefresh();
     this.canvas.remove();
   }
 }

@@ -313,6 +313,56 @@ const chart = KLineChart.create({
   },
 };
 
+  'realtime': {
+    name: '实时数据刷新',
+    code: `// 模拟实时数据推送：每秒新增一根K线
+const chart = KLineChart.create({
+  container: '#chart-container',
+  type: 'kline',
+  data: generateMockData(50, 50),
+  options: { visibleRange: 40 },
+});
+
+// 每秒添加一根新K线
+const timer = setInterval(() => {
+  const data = chart.setData ? chart['klineData'] : null;
+  if (!data) return;
+  const last = data[data.length - 1];
+  const open = last.close;
+  const close = open * (1 + (Math.random() - 0.5) * 0.02);
+  const high = Math.max(open, close) * (1 + Math.random() * 0.01);
+  const low = Math.min(open, close) * (1 - Math.random() * 0.01);
+  data.push({
+    timestamp: Date.now(),
+    open, high, low, close,
+    volume: Math.floor(Math.random() * 1000000),
+  });
+  chart.setData(data);
+}, 1000);
+
+// 停止：clearInterval(timer)`,
+    render: (c) => {
+      const chart = KLineChart.create({
+        container: c,
+        type: 'kline',
+        data: generateMockData(50, 50),
+        options: { visibleRange: 40 },
+      });
+      const timer = setInterval(() => {
+        const data = chart.setData ? (chart as any).klineData : null;
+        if (!data) return;
+        const last = data[data.length - 1];
+        const o = last.close;
+        const c = o * (1 + (Math.random() - 0.5) * 0.02);
+        const h = Math.max(o, c) * (1 + Math.random() * 0.01);
+        const l = Math.min(o, c) * (1 - Math.random() * 0.01);
+        data.push({ timestamp: Date.now(), open: o, high: h, low: l, close: c, volume: Math.floor(Math.random() * 1000000) });
+        chart.setData(data);
+      }, 1000);
+      (chart as any)._rtTimer = timer;
+      return chart;
+    },
+  },
 // ========== 页面导航 ==========
 let currentChart: KLineChart | null = null;
 
@@ -361,6 +411,7 @@ const docSections: { id: string; label: string; sub?: string }[] = [
   { id: 'config-tick', label: 'TickChartOptions', sub: 'config' },
   { id: 'config-indicator', label: 'IndicatorConfig', sub: 'config' },
   { id: 'config-interaction', label: 'Interaction', sub: 'config' },
+  { id: 'config-refresh', label: 'DataRefreshConfig', sub: 'config' },
   { id: 'data-format', label: '数据格式' },
   { id: 'remote-data', label: '远程数据加载', sub: 'data-format' },
   { id: 'lazy-load', label: '分段加载（增量数据）', sub: 'data-format' },

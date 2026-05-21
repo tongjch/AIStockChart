@@ -161,6 +161,26 @@ export interface KLineChartConfig {
     /** 提前加载阈值（距离边缘多少根K线时触发，默认 20） */
     preloadThreshold?: number;
   };
+  /** 动态数据刷新配置（轮询 / WebSocket / SSE） */
+  dataRefresh?: DataRefreshConfig;
+}
+
+/** 动态数据刷新配置 */
+export interface DataRefreshConfig {
+  /** 刷新方式 */
+  type: 'poll' | 'websocket' | 'sse';
+  /** 数据URL（poll/sse 为 HTTP 地址，websocket 为 ws:// 地址） */
+  url: string;
+  /** 轮询间隔毫秒数（仅 type='poll' 时有效，默认 5000） */
+  interval?: number;
+  /** 数据合并策略：'replace' = 全量替换，'append' = 智能追加（默认 'replace'） */
+  strategy?: 'replace' | 'append';
+  /** 最大保留数据条数，防止内存无限增长（默认 5000） */
+  maxPoints?: number;
+  /** 连接/请求失败后的重试间隔毫秒数（默认 3000） */
+  retryInterval?: number;
+  /** 自定义数据合并函数（优先级高于 strategy） */
+  merge?: (existing: KLineData[] | TickData[], incoming: KLineData[] | TickData[]) => KLineData[] | TickData[];
 }
 
 /** 数据加载器参数 */

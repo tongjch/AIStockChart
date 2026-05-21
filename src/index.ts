@@ -8,6 +8,7 @@ export type {
   IndicatorConfig,
   TickChartOptions,
   DataLoaderParams,
+  DataRefreshConfig,
 } from './core/types';
 export { DEFAULT_STYLE, DEFAULT_OPTIONS } from './core/types';
 export { calcMA, calcBOLL } from './indicator';
