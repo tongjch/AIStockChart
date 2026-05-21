@@ -340,6 +340,7 @@ const docSections: { id: string; label: string; sub?: string }[] = [
   { id: 'config-interaction', label: 'Interaction', sub: 'config' },
   { id: 'data-format', label: '数据格式' },
   { id: 'remote-data', label: '远程数据加载', sub: 'data-format' },
+  { id: 'lazy-load', label: '分段加载（增量数据）', sub: 'data-format' },
   { id: 'data-kline', label: 'KLineData', sub: 'data-format' },
   { id: 'data-tick', label: 'TickData', sub: 'data-format' },
   { id: 'api', label: '实例方法 & 事件' },
@@ -607,6 +608,70 @@ chart.loadTickFromUrl(url);</div>
     <tr><td class="cfg-desc"><code>loadKlineFromUrl</code> 和 <code>loadTickFromUrl</code> 返回 Promise，可 await。</td></tr>
     <tr><td class="cfg-desc">加载失败时会在控制台打印错误，图表保留上次数据不变。</td></tr>
     <tr><td class="cfg-desc">URL 中可携带查询参数（股票代码、周期等），由后端解析。</td></tr>
+  </table>
+</div>
+
+<!-- 分段加载 -->
+<div id="doc-lazy-load" class="doc-section">
+  <h2>分段加载（增量数据）</h2>
+  <p>当K线数据量较大时，可通过 <code>dataLoader</code> 配置实现<strong>按需加载</strong>：初始只加载最近的数据，用户向左拖动时自动加载更早的历史数据。</p>
+
+  <h3 style="margin-top:16px;font-size:14px">配置项</h3>
+  <table class="config-table">
+    <tr><th style="color:#909399;font-size:12px">属性</th><th style="color:#909399;font-size:12px">类型</th><th style="color:#909399;font-size:12px">默认值</th><th style="color:#909399;font-size:12px">说明</th></tr>
+    <tr><td class="cfg-name">fetch</td><td class="cfg-type">(params) =&gt; Promise&lt;KLineData[]&gt;</td><td class="cfg-default">—</td><td class="cfg-desc"><strong>必填</strong>。数据加载回调，返回 Promise。</td></tr>
+    <tr><td class="cfg-name">pageSize</td><td class="cfg-type">number</td><td class="cfg-default">300</td><td class="cfg-desc">每次请求的数据条数。</td></tr>
+    <tr><td class="cfg-name">preloadThreshold</td><td class="cfg-type">number</td><td class="cfg-default">20</td><td class="cfg-desc">距离左边缘多少根K线时触发加载。</td></tr>
+  </table>
+
+  <h3 style="margin-top:16px;font-size:14px">fetch 参数（DataLoaderParams）</h3>
+  <table class="config-table">
+    <tr><th style="color:#909399;font-size:12px">属性</th><th style="color:#909399;font-size:12px">类型</th><th style="color:#909399;font-size:12px">说明</th></tr>
+    <tr><td class="cfg-name">direction</td><td class="cfg-type">'prev' | 'next'</td><td class="cfg-desc">加载方向。'prev' = 更早的历史数据，'next' = 更新的数据。</td></tr>
+    <tr><td class="cfg-name">fromTimestamp</td><td class="cfg-type">number?</td><td class="cfg-desc">当前数据首条时间戳（direction='prev' 时提供），用于后端定位分页起点。</td></tr>
+    <tr><td class="cfg-name">toTimestamp</td><td class="cfg-type">number?</td><td class="cfg-desc">当前数据末条时间戳（direction='next' 时提供）。</td></tr>
+    <tr><td class="cfg-name">count</td><td class="cfg-type">number</td><td class="cfg-desc">请求的数据条数（等于 pageSize）。</td></tr>
+  </table>
+
+  <h3 style="margin-top:16px;font-size:14px">工作流程</h3>
+  <div class="doc-code">// 1. 初始化时加载最近 300 条数据
+const chart = KLineChart.create({
+  type: 'kline',
+  data: initialData,       // 初始数据（如最近300条）
+  dataLoader: {
+    pageSize: 300,
+    preloadThreshold: 20,
+    fetch: async ({ direction, fromTimestamp, count }) => {
+      // direction = 'prev' 时，fromTimestamp 是当前最早的数据时间戳
+      // 后端据此返回更早的 count 条数据
+      const resp = await fetch(
+        `/api/kline?page&direction=${direction}`
+        + (fromTimestamp ? `&from=${fromTimestamp}` : '')
+        + `&count=${count}`
+      );
+      return resp.json();
+    },
+  },
+});
+
+// 2. 用户向左拖动，offset 接近 0 时自动触发 loadPrev()
+//    → 调用 fetch({ direction: 'prev', fromTimestamp, count: 300 })
+//    → 新数据拼接到头部，视图位置自动保持不变
+
+// 3. 当 fetch 返回空数组时，标记 hasMorePrev = false，不再加载</div>
+
+  <h3 style="margin-top:16px;font-size:14px">实例方法</h3>
+  <table class="config-table">
+    <tr><th style="color:#909399;font-size:12px">方法</th><th style="color:#909399;font-size:12px">说明</th></tr>
+    <tr><td class="cfg-name">resetLoader()</td><td class="cfg-desc">重置加载状态（hasMorePrev / hasMoreNext 恢复为 true）。适用于切换股票代码等场景。</td></tr>
+  </table>
+
+  <p style="margin-top:12px"><strong>注意：</strong></p>
+  <table class="config-table">
+    <tr><td class="cfg-desc">分段加载仅支持K线图（type='kline'），分时图通常数据量不大，不需要分段。</td></tr>
+    <tr><td class="cfg-desc">内置 loading 锁，同一时刻最多一个请求，避免重复加载。</td></tr>
+    <tr><td class="cfg-desc">后端接口需返回 JSON 数组，按时间升序排列。</td></tr>
+    <tr><td class="cfg-desc">切换股票或周期后，需调用 <code>resetLoader()</code> 重置加载状态。</td></tr>
   </table>
 </div>
 
