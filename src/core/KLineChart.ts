@@ -166,19 +166,20 @@ export class KLineChart {
     return this;
   }
 
-  /** 设置分时数据 */
-  setTickData(data: TickData[], options?: TickChartOptions): this {
-    this.tickData = data;
+  /** 设置分时数据，支持URL */
+  setTickData(data: TickData[] | string, options?: TickChartOptions): this {
     if (options) this.tickOptions = options;
-    
-    // 自动切换到分时图
     this.chartType = 'tick';
     this.klineRenderer = null;
     this.tickRenderer = null;
-    this.initTickRenderer();
-    if (options) this.tickRenderer!.setTickOptions(options);
-    this.tickRenderer!.setData(data);
-
+    if (typeof data === 'string') {
+      this.loadTickFromUrl(data);
+    } else {
+      this.tickData = data;
+      this.initTickRenderer();
+      if (options) this.tickRenderer!.setTickOptions(options);
+      this.tickRenderer!.setData(data);
+    }
     return this;
   }
 
@@ -191,15 +192,19 @@ export class KLineChart {
     return this;
   }
 
-  /** 设置K线数据（向后兼容） */
-  setData(data: KLineData[]): this {
-    this.rawKlineData = data;
+  /** 设置K线数据（向后兼容），支持URL */
+  setData(data: KLineData[] | string): this {
     this.chartType = 'kline';
     this.klineRenderer = null;
     this.tickRenderer = null;
-    this.initKlineRenderer();
-    this.applyPeriod();
-    this.applyIndicators();
+    if (typeof data === 'string') {
+      this.loadKlineFromUrl(data);
+    } else {
+      this.rawKlineData = data;
+      this.initKlineRenderer();
+      this.applyPeriod();
+      this.applyIndicators();
+    }
     return this;
   }
 
