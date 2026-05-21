@@ -1,11 +1,11 @@
 import { KLineChart, generateMockData, generateTickData, calcMA, calcBOLL } from './index';
-import type { KLineData, TickData, KLineChartConfig, TickChartOptions, ChartOptions, ChartStyle } from './index';
+import type { KLineData, TickData } from './index';
 
 // ========== 示例定义 ==========
 interface Example {
   name: string;
   code: string;
-  toolbar?: string; // 工具栏HTML
+  toolbar?: string;
   render: (container: HTMLDivElement) => KLineChart;
 }
 
@@ -23,7 +23,6 @@ const examples: Record<string, Example> = {
 });`,
     render: (c) => KLineChart.create({ container: c, type: 'kline', data: klineData, options: { visibleRange: 80 } }),
   },
-
   'kline-ma': {
     name: 'MA均线指标',
     code: `const chart = KLineChart.create({
@@ -41,7 +40,6 @@ const examples: Record<string, Example> = {
       options: { visibleRange: 80 },
     }),
   },
-
   'kline-boll': {
     name: 'BOLL布林带',
     code: `const chart = KLineChart.create({
@@ -59,7 +57,6 @@ const examples: Record<string, Example> = {
       options: { visibleRange: 80 },
     }),
   },
-
   'kline-period': {
     name: '日K/周K/月K切换',
     toolbar: `<button class="period-btn active" data-period="day">日K</button>
@@ -79,7 +76,6 @@ chart.setPeriod('month');  // 月K
 chart.setPeriod('day');    // 日K`,
     render: (c) => {
       const chart = KLineChart.create({ container: c, type: 'kline', data: klineData, period: 'day', options: { visibleRange: 80 } });
-      // 绑定周期切换
       document.querySelectorAll('.period-btn').forEach((btn) => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.period-btn').forEach((b) => b.classList.remove('active'));
@@ -90,40 +86,29 @@ chart.setPeriod('day');    // 日K`,
       return chart;
     },
   },
-
   'tick-basic': {
     name: '基础分时图',
     code: `const chart = KLineChart.create({
   container: '#chart-container',
   type: 'tick',
   tickData: tickData,
-  tickOptions: {
-    prevClose: 50.88,
-  },
+  tickOptions: { prevClose: 50.88 },
 });`,
-    render: (c) => KLineChart.create({
-      container: c, type: 'tick', tickData, tickOptions: { prevClose: 50.88 },
-    }),
+    render: (c) => KLineChart.create({ container: c, type: 'tick', tickData, tickOptions: { prevClose: 50.88 } }),
   },
-
   'tick-area': {
     name: '分时面积图',
     code: `// 分时图默认以面积图展示
-// 涨：蓝色渐变填充
-// 跌：红色渐变填充
+// 涨：蓝色渐变填充，跌：红色渐变填充
 const chart = KLineChart.create({
   container: '#chart-container',
   type: 'tick',
   tickData: tickData,
-  tickOptions: {
-    prevClose: 50.88,
-  },
+  tickOptions: { prevClose: 50.88 },
   options: {
     style: {
       tickLineColor: '#4d96ff',
       tickAvgColor: '#ffd93d',
-      tickFillUpColor: 'rgba(77, 150, 255, 0.15)',
-      tickFillDownColor: 'rgba(255, 107, 107, 0.15)',
     },
   },
 });`,
@@ -133,7 +118,6 @@ const chart = KLineChart.create({
       options: { style: { tickLineColor: '#4d96ff', tickAvgColor: '#ffd93d' } },
     }),
   },
-
   'tick-visible': {
     name: '分时部分数据',
     toolbar: `<button class="vp-btn" data-vp="60">显示60点</button>
@@ -147,7 +131,7 @@ const chart = KLineChart.create({
   tickData: tickData,
   tickOptions: {
     prevClose: 50.88,
-    visiblePoints: 120,  // 仅显示最近120个点
+    visiblePoints: 120,
   },
 });
 
@@ -159,14 +143,12 @@ chart.setTickOptions({ prevClose: 50.88, visiblePoints: 60 });`,
         btn.addEventListener('click', () => {
           document.querySelectorAll('.vp-btn').forEach((b) => b.classList.remove('active'));
           btn.classList.add('active');
-          const vp = parseInt((btn as HTMLElement).dataset.vp!);
-          chart.setTickOptions({ prevClose: 50.88, visiblePoints: vp });
+          chart.setTickOptions({ prevClose: 50.88, visiblePoints: parseInt((btn as HTMLElement).dataset.vp!) });
         });
       });
       return chart;
     },
   },
-
   'switch': {
     name: 'K线/分时切换',
     toolbar: `<button class="switch-btn active" data-type="kline">K线图</button>
@@ -219,8 +201,7 @@ document.querySelectorAll('.nav-tab').forEach((tab) => {
     document.querySelectorAll('.nav-tab').forEach((t) => t.classList.remove('active'));
     tab.classList.add('active');
     document.querySelectorAll('.page').forEach((p) => p.classList.remove('active'));
-    const pageId = `page-${(tab as HTMLElement).dataset.page}`;
-    document.getElementById(pageId)!.classList.add('active');
+    document.getElementById(`page-${(tab as HTMLElement).dataset.page}`)!.classList.add('active');
   });
 });
 
@@ -228,183 +209,373 @@ document.querySelectorAll('.nav-tab').forEach((tab) => {
 function loadExample(key: string) {
   const ex = examples[key];
   if (!ex) return;
-
-  // 销毁旧图表
   if (currentChart) currentChart.destroy();
   currentChart = null;
 
-  // 高亮侧边栏
   document.querySelectorAll('.sidebar-item').forEach((item) => {
     item.classList.toggle('active', (item as HTMLElement).dataset.example === key);
   });
 
-  // 工具栏
-  const toolbar = document.getElementById('example-toolbar')!;
-  toolbar.innerHTML = ex.toolbar ?? '';
-
-  // 代码面板
+  document.getElementById('example-toolbar')!.innerHTML = ex.toolbar ?? '';
   document.getElementById('code-panel')!.textContent = ex.code;
 
-  // 渲染图表
   const container = document.getElementById('chart-container')!;
   container.innerHTML = '';
   currentChart = ex.render(container);
 }
 
 document.querySelectorAll('.sidebar-item').forEach((item) => {
-  item.addEventListener('click', () => {
-    loadExample((item as HTMLElement).dataset.example!);
-  });
+  item.addEventListener('click', () => loadExample((item as HTMLElement).dataset.example!));
 });
-
-// 默认加载第一个
 loadExample('kline-basic');
 
-// ========== 文档页内容 ==========
-document.getElementById('doc-content')!.innerHTML = `
-<h1>AIStockChart 技术文档</h1>
-<p>基于 Canvas + TypeScript 的金融图表库，支持 K线图与分时图。</p>
+// ========== ECharts风格文档 ==========
+const docSections: { id: string; label: string; sub?: string }[] = [
+  { id: 'overview', label: '总览' },
+  { id: 'quick-start', label: '快速开始' },
+  { id: 'config', label: 'KLineChartConfig' },
+  { id: 'config-options', label: 'ChartOptions', sub: 'config' },
+  { id: 'config-style', label: 'ChartStyle', sub: 'config' },
+  { id: 'config-tick', label: 'TickChartOptions', sub: 'config' },
+  { id: 'config-indicator', label: 'IndicatorConfig', sub: 'config' },
+  { id: 'config-interaction', label: 'Interaction', sub: 'config' },
+  { id: 'data-format', label: '数据格式' },
+  { id: 'data-kline', label: 'KLineData', sub: 'data-format' },
+  { id: 'data-tick', label: 'TickData', sub: 'data-format' },
+  { id: 'api', label: '实例方法 & 事件' },
+  { id: 'api-methods', label: '方法列表', sub: 'api' },
+  { id: 'api-events', label: '事件回调', sub: 'api' },
+  { id: 'utils', label: '工具函数' },
+];
 
-<h2>快速开始</h2>
-<pre>npm install
-npm run dev</pre>
+// 渲染左侧导航
+const docNav = document.getElementById('doc-nav')!;
+let currentNavGroup = '';
+docSections.forEach((s) => {
+  if (s.sub && s.sub !== currentNavGroup) {
+    const title = docSections.find((d) => d.id === s.sub);
+    if (title) {
+      const el = document.createElement('div');
+      el.className = 'doc-nav-item';
+      el.style.cssText = 'padding-left:12px; font-weight:600; color:#c0c0e0; margin-top:8px; font-size:12px;';
+      el.textContent = title.label;
+      docNav.appendChild(el);
+    }
+    currentNavGroup = s.sub;
+  }
+  const el = document.createElement('div');
+  el.className = `doc-nav-item${s.sub ? ' sub' : ''}${!s.sub ? ' active' : ''}`;
+  el.textContent = s.label;
+  el.dataset.target = s.id;
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.doc-nav-item').forEach((n) => n.classList.remove('active'));
+    el.classList.add('active');
+    const target = document.getElementById(`doc-${s.id}`);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  docNav.appendChild(el);
+});
 
-<h2>KLineChart.create(config)</h2>
-<p>通过 JSON 配置创建图表实例（推荐方式）。</p>
-<pre>import { KLineChart, generateMockData } from 'ai-stock-chart';
+// 渲染文档内容
+function cfg(name: string, type: string, def: string, desc: string) {
+  return `<tr><td class="cfg-name">${name}</td><td class="cfg-type">${type}</td><td class="cfg-default">${def}</td><td class="cfg-desc">${desc}</td></tr>`;
+}
+
+document.getElementById('doc-main')!.innerHTML = `
+<!-- 总览 -->
+<div id="doc-overview" class="doc-section">
+  <h1>AIStockChart <span style="font-size:14px;color:#8888aa;font-weight:400">v1.0.0</span></h1>
+  <p class="desc">基于 Canvas + TypeScript 的轻量级金融图表库，支持 K线图（蜡烛图）与分时图（面积图），提供丰富的交互与自定义能力。</p>
+</div>
+
+<!-- 快速开始 -->
+<div id="doc-quick-start" class="doc-section">
+  <h2>快速开始</h2>
+  <div class="doc-code">npm install
+npm run dev</div>
+  <p>访问 <code>http://localhost:3200</code> 查看示例。</p>
+  <p style="margin-top:12px">通过 JSON 配置创建图表：</p>
+  <div class="doc-code">import { KLineChart, generateMockData } from './index';
 
 const chart = KLineChart.create({
+  container: '#chart-container',
+  type: 'kline',
+  data: generateMockData(200, 50),
+  period: 'day',
+  indicators: [{ type: 'ma', params: { periods: [5, 10, 20] } }],
+  options: { visibleRange: 80 },
+});</div>
+</div>
+
+<!-- KLineChartConfig -->
+<div id="doc-config" class="doc-section">
+  <h2>KLineChartConfig <span class="tag">核心配置</span></h2>
+  <p>通过 <code>KLineChart.create(config)</code> 创建图表，<code>config</code> 支持以下属性：</p>
+  <table class="config-table">
+    <tr><th style="color:#8888aa;font-size:12px">属性名</th><th style="color:#8888aa;font-size:12px">类型</th><th style="color:#8888aa;font-size:12px">默认值</th><th style="color:#8888aa;font-size:12px">说明</th></tr>
+    ${cfg('container', 'string', '—', 'CSS 选择器或 DOM 元素。<strong style="color:#fff">必填</strong>。')}
+    ${cfg('type', "'kline' | 'tick'", "'kline'", '图表类型。kline=K线图，tick=分时面积图。')}
+    ${cfg('data', 'KLineData[] / TickData[] / string', '—', '数据源。传入数组或数据加载 URL。K线/分时数据根据 type 自动识别。')}
+    ${cfg('tickData', 'TickData[]', '—', '分时数据。仅 <code>type</code>=tick 时有效。')}
+    ${cfg('tickOptions', 'TickChartOptions', '—', '分时图配置。仅 <code>type</code>=tick 时有效。')}
+    ${cfg('period', "'day' | 'week' | 'month'", "'day'", 'K线周期。仅 <code>type</code>=kline 时有效。')}
+    ${cfg('indicators', 'IndicatorConfig[]', '—', '技术指标配置列表。仅 <code>type</code>=kline 时有效。')}
+    ${cfg('options', 'ChartOptions', '—', '图表全局选项。')}
+    ${cfg('interaction', 'Interaction', '—', '交互行为开关。')}
+    ${cfg('onLoad', '(chart) => void', '—', '图表创建完成回调。')}
+    ${cfg('onClick', '(data, index) => void', '—', '点击数据点回调。')}
+    ${cfg('onCrosshairMove', '(data, index) => void', '—', '十字光标移动回调。')}
+  </table>
+</div>
+
+<!-- ChartOptions -->
+<div id="doc-config-options" class="doc-section">
+  <h2>ChartOptions <span class="tag">图表选项</span></h2>
+  <p>通过 <code>config.options</code> 传入，控制图表布局与行为。</p>
+  <table class="config-table">
+    <tr><th style="color:#8888aa;font-size:12px">属性名</th><th style="color:#8888aa;font-size:12px">类型</th><th style="color:#8888aa;font-size:12px">默认值</th><th style="color:#8888aa;font-size:12px">说明</th></tr>
+    ${cfg('visibleRange', 'number', '80', '默认可见的 K线根数。拖拽/缩放时会变化。')}
+    ${cfg('minVisibleRange', 'number', '20', '缩放时最少可见 K线数。')}
+    ${cfg('candleGap', 'number', '2', 'K线之间的间距（像素）。')}
+    ${cfg('candleMinWidth', 'number', '3', 'K线最小宽度（像素）。')}
+    ${cfg('candleMaxWidth', 'number', '40', 'K线最大宽度（像素）。')}
+    ${cfg('priceAreaRatio', 'number', '0.75', '价格区域高度占比（0~1）。')}
+    ${cfg('volumeAreaRatio', 'number', '0.25', '成交量区域高度占比（0~1）。')}
+    ${cfg('rightPadding', 'number', '5', '右侧留白的 K线数量。')}
+    ${cfg('showVolume', 'boolean', 'true', '是否显示成交量副图。')}
+    ${cfg('showGrid', 'boolean', 'true', '是否显示背景网格线。')}
+    ${cfg('yAxisWidth', 'number', '80', 'Y轴标签区域宽度（像素）。')}
+    ${cfg('xAxisHeight', 'number', '28', 'X轴标签区域高度（像素）。')}
+    ${cfg('pixelRatio', 'number', 'devicePixelRatio', 'Canvas 像素比，高清屏自动适配。')}
+    ${cfg('style', 'ChartStyle', 'DEFAULT_STYLE', '样式配置。详见 <a href="javascript:void(0)" onclick="document.getElementById(\'doc-config-style\').scrollIntoView({behavior:\'smooth\'})" style="color:#4d96ff">ChartStyle</a>。')}
+  </table>
+</div>
+
+<!-- ChartStyle -->
+<div id="doc-config-style" class="doc-section">
+  <h2>ChartStyle <span class="tag">样式</span></h2>
+  <p>通过 <code>config.options.style</code> 传入，控制颜色、字体、线条等视觉样式。</p>
+
+  <div class="config-group">
+    <div class="config-group-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+      <span>全局样式</span><span class="arrow">▶</span>
+    </div>
+    <div class="config-group-body">
+      <table class="config-table">
+        ${cfg('backgroundColor', 'string', "'#1a1a2e'", '图表背景颜色。')}
+        ${cfg('gridColor', 'string', "'#2a2a4a'", '网格线颜色。')}
+        ${cfg('gridDash', 'number[]', '[4, 4]', '网格线虚线样式。设为 <code>[]</code> 为实线。')}
+        ${cfg('textColor', 'string', "'#8888aa'", '通用文字颜色。')}
+        ${cfg('crosshairColor', 'string', "'#8888aa'", '十字光标颜色。')}
+        ${cfg('candleBorderWidth', 'number', '1', 'K线边框宽度（像素）。')}
+        ${cfg('indicatorTextColor', 'string', "'#a0a0c0'", '指标文字颜色。')}
+      </table>
+    </div>
+  </div>
+
+  <div class="config-group">
+    <div class="config-group-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+      <span>K线颜色</span><span class="arrow">▶</span>
+    </div>
+    <div class="config-group-body">
+      <table class="config-table">
+        ${cfg('upColor', 'string', "'#00b894'", '阳线（涨）填充颜色。')}
+        ${cfg('downColor', 'string', "'#ff6b6b'", '阴线（跌）填充颜色。')}
+        ${cfg('volumeUpColor', 'string', "'rgba(0,184,148,0.5)'", '成交量柱——涨颜色。')}
+        ${cfg('volumeDownColor', 'string', "'rgba(255,107,107,0.5)'", '成交量柱——跌颜色。')}
+        ${cfg('maColors', 'string[]', '[5色]', 'MA 均线颜色数组，按顺序对应各周期。默认黄/绿/蓝/红/紫。')}
+      </table>
+    </div>
+  </div>
+
+  <div class="config-group">
+    <div class="config-group-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+      <span>分时图样式</span><span class="arrow">▶</span>
+    </div>
+    <div class="config-group-body">
+      <table class="config-table">
+        ${cfg('tickLineColor', 'string', "'#4d96ff'", '分时价格曲线颜色。')}
+        ${cfg('tickAvgColor', 'string', "'#ffd93d'", '均价线颜色。')}
+        ${cfg('tickBaseColor', 'string', "'#8888aa'", '基准线（昨收）颜色。')}
+        ${cfg('tickFillUpColor', 'string', "'rgba(0,184,148,0.15)'", '面积图涨填充颜色。')}
+        ${cfg('tickFillDownColor', 'string', "'rgba(255,107,107,0.15)'", '面积图跌填充颜色。')}
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TickChartOptions -->
+<div id="doc-config-tick" class="doc-section">
+  <h2>TickChartOptions <span class="tag">分时配置</span></h2>
+  <p>通过 <code>config.tickOptions</code> 传入，控制分时图的交易时间和展示行为。</p>
+  <table class="config-table">
+    <tr><th style="color:#8888aa;font-size:12px">属性名</th><th style="color:#8888aa;font-size:12px">类型</th><th style="color:#8888aa;font-size:12px">默认值</th><th style="color:#8888aa;font-size:12px">说明</th></tr>
+    ${cfg('prevClose', 'number', '—', '<strong style="color:#fff">必填</strong>。昨日收盘价，作为涨跌幅计算的基准线和面积图基线。')}
+    ${cfg('openTime', 'number', '930', '开盘时间。格式 HHMM，如 930 表示 09:30。')}
+    ${cfg('closeTime', 'number', '1500', '收盘时间。格式 HHMM。')}
+    ${cfg('lunchStart', 'number', '1130', '午休开始时间。午休时段数据不显示。')}
+    ${cfg('lunchEnd', 'number', '1300', '午休结束时间。')}
+    ${cfg('visiblePoints', 'number', '0', '展示的最近数据点数量。<code>0</code> 表示显示全部。适合数据量大时控制渲染范围。')}
+  </table>
+</div>
+
+<!-- IndicatorConfig -->
+<div id="doc-config-indicator" class="doc-section">
+  <h2>IndicatorConfig <span class="tag">指标配置</span></h2>
+  <p>通过 <code>config.indicators</code> 传入，支持同时叠加多个技术指标。</p>
+  <table class="config-table">
+    <tr><th style="color:#8888aa;font-size:12px">属性名</th><th style="color:#8888aa;font-size:12px">类型</th><th style="color:#8888aa;font-size:12px">默认值</th><th style="color:#8888aa;font-size:12px">说明</th></tr>
+    ${cfg('type', 'string', '—', "指标类型。<code>'ma'</code> = 移动平均线，<code>'boll'</code> = 布林带。")}
+    ${cfg('params', 'object', '—', '指标参数，不同指标参数不同。详见下方。')}
+  </table>
+
+  <div class="config-group" style="margin-top:16px">
+    <div class="config-group-header open" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+      <span>MA 参数 <code style="color:#8888aa;font-size:12px">params</code></span><span class="arrow">▶</span>
+    </div>
+    <div class="config-group-body open">
+      <table class="config-table">
+        ${cfg('periods', 'number[]', '[5, 10, 20, 30, 60]', '均线周期数组。每个值对应一条均线。')}
+      </table>
+      <div class="doc-code">{ type: 'ma', params: { periods: [5, 10, 20, 30, 60] } }</div>
+    </div>
+  </div>
+
+  <div class="config-group">
+    <div class="config-group-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+      <span>BOLL 参数 <code style="color:#8888aa;font-size:12px">params</code></span><span class="arrow">▶</span>
+    </div>
+    <div class="config-group-body">
+      <table class="config-table">
+        ${cfg('period', 'number', '20', '布林带中轨周期。')}
+        ${cfg('multiplier', 'number', '2', '标准差倍数。控制上下轨宽度。')}
+      </table>
+      <div class="doc-code">{ type: 'boll', params: { period: 20, multiplier: 2 } }</div>
+    </div>
+  </div>
+</div>
+
+<!-- Interaction -->
+<div id="doc-config-interaction" class="doc-section">
+  <h2>Interaction <span class="tag">交互配置</span></h2>
+  <p>通过 <code>config.interaction</code> 传入，控制用户交互行为。</p>
+  <table class="config-table">
+    <tr><th style="color:#8888aa;font-size:12px">属性名</th><th style="color:#8888aa;font-size:12px">类型</th><th style="color:#8888aa;font-size:12px">默认值</th><th style="color:#8888aa;font-size:12px">说明</th></tr>
+    ${cfg('drag', 'boolean', 'true', '启用鼠标拖拽平移 K线。分时图固定不可拖拽。')}
+    ${cfg('zoom', 'boolean', 'true', '启用鼠标滚轮缩放 K线。分时图固定不可缩放。')}
+    ${cfg('crosshair', 'boolean', 'true', '启用十字光标。鼠标移动时显示价格/时间辅助线。')}
+    ${cfg('touch', 'boolean', 'true', '启用触摸手势。单指拖拽、双指缩放。')}
+  </table>
+  <div class="doc-code">interaction: {
+  drag: true,
+  zoom: true,
+  crosshair: true,
+  touch: true,
+}</div>
+</div>
+
+<!-- 数据格式 -->
+<div id="doc-data-format" class="doc-section">
+  <h2>数据格式</h2>
+</div>
+
+<div id="doc-data-kline" class="doc-section">
+  <h2>KLineData <span class="tag">K线数据</span></h2>
+  <table class="config-table">
+    ${cfg('timestamp', 'number', '—', '时间戳（毫秒）。')}
+    ${cfg('open', 'number', '—', '开盘价。')}
+    ${cfg('high', 'number', '—', '最高价。')}
+    ${cfg('low', 'number', '—', '最低价。')}
+    ${cfg('close', 'number', '—', '收盘价。')}
+    ${cfg('volume', 'number', '—', '成交量。')}
+    ${cfg('turnover', 'number', '—', '成交额（可选）。')}
+  </table>
+  <div class="doc-code">const kline: KLineData = {
+  timestamp: 1716240000000,
+  open: 50.12,
+  high: 51.88,
+  low: 49.50,
+  close: 51.20,
+  volume: 125000,
+};</div>
+</div>
+
+<div id="doc-data-tick" class="doc-section">
+  <h2>TickData <span class="tag">分时数据</span></h2>
+  <table class="config-table">
+    ${cfg('timestamp', 'number', '—', '时间戳（毫秒）。')}
+    ${cfg('price', 'number', '—', '当前价格。')}
+    ${cfg('volume', 'number', '—', '成交量。')}
+    ${cfg('avgPrice', 'number', '—', '均价（可选）。不传则自动计算。')}
+  </table>
+  <div class="doc-code">const tick: TickData = {
+  timestamp: 1716240000000,
+  price: 51.20,
+  volume: 5200,
+};</div>
+</div>
+
+<!-- API -->
+<div id="doc-api" class="doc-section">
+  <h2>实例方法 & 事件</h2>
+</div>
+
+<div id="doc-api-methods" class="doc-section">
+  <h2>方法列表 <span class="tag">API</span></h2>
+  <table class="method-table">
+    <tr><th style="color:#8888aa;font-size:12px">方法</th><th style="color:#8888aa;font-size:12px">返回值</th><th style="color:#8888aa;font-size:12px">说明</th></tr>
+    <tr><td class="method-name">setData(data: KLineData[])</td><td class="method-ret">this</td><td class="method-desc">设置 K线数据，自动切换到 K线图模式。</td></tr>
+    <tr><td class="method-name">setTickData(data, options?)</td><td class="method-ret">this</td><td class="method-desc">设置分时数据，自动切换到分时图模式。</td></tr>
+    <tr><td class="method-name">setTickOptions(options)</td><td class="method-ret">this</td><td class="method-desc">更新分时图配置（如 visiblePoints），立即重新渲染。</td></tr>
+    <tr><td class="method-name">setType(type)</td><td class="method-ret">this</td><td class="method-desc">切换图表类型。'kline' 或 'tick'。</td></tr>
+    <tr><td class="method-name">setPeriod(period)</td><td class="method-ret">this</td><td class="method-desc">切换 K线周期。'day' / 'week' / 'month'。</td></tr>
+    <tr><td class="method-name">setIndicatorConfigs(configs)</td><td class="method-ret">this</td><td class="method-desc">通过配置对象设置指标。支持 MA、BOLL。</td></tr>
+    <tr><td class="method-name">setIndicators(indicators)</td><td class="method-ret">this</td><td class="method-desc">直接设置已计算的指标结果（IndicatorResult[]）。</td></tr>
+    <tr><td class="method-name">getType()</td><td class="method-ret">string</td><td class="method-desc">获取当前图表类型。</td></tr>
+    <tr><td class="method-name">getKlineData()</td><td class="method-ret">KLineData[]</td><td class="method-desc">获取当前 K线数据。</td></tr>
+    <tr><td class="method-name">getTickData()</td><td class="method-ret">TickData[]</td><td class="method-desc">获取当前分时数据。</td></tr>
+    <tr><td class="method-name">getPeriod()</td><td class="method-ret">string</td><td class="method-desc">获取当前 K线周期。</td></tr>
+    <tr><td class="method-name">destroy()</td><td class="method-ret">void</td><td class="method-desc">销毁图表实例，移除 Canvas DOM。</td></tr>
+  </table>
+
+  <p style="margin-top:16px">静态方法：</p>
+  <table class="method-table">
+    <tr><td class="method-name">KLineChart.create(config)</td><td class="method-ret">KLineChart</td><td class="method-desc">通过 JSON 配置创建图表实例（推荐方式）。</td></tr>
+  </table>
+</div>
+
+<div id="doc-api-events" class="doc-section">
+  <h2>事件回调 <span class="tag">API</span></h2>
+  <p>在 <code>KLineChartConfig</code> 中配置。</p>
+  <table class="event-table">
+    <tr><th style="color:#8888aa;font-size:12px">回调名</th><th style="color:#8888aa;font-size:12px">参数</th><th style="color:#8888aa;font-size:12px">说明</th></tr>
+    <tr><td class="event-name">onLoad</td><td style="color:#4d96ff">(chart: KLineChart)</td><td class="event-desc">图表创建完成时触发。</td></tr>
+    <tr><td class="event-name">onClick</td><td style="color:#4d96ff">(data, index: number)</td><td class="event-desc">点击数据点时触发。data 类型根据当前图表类型为 KLineData 或 TickData。</td></tr>
+    <tr><td class="event-name">onCrosshairMove</td><td style="color:#4d96ff">(data, index: number)</td><td class="event-desc">十字光标移动时触发。光标离开时 data 为 null，index 为 -1。</td></tr>
+  </table>
+  <div class="doc-code">KLineChart.create({
   container: '#chart',
   type: 'kline',
   data: klineData,
-  options: { visibleRange: 80 },
-});</pre>
+  onLoad: (chart) => console.log('图表就绪'),
+  onClick: (data, idx) => console.log('点击:', data, idx),
+  onCrosshairMove: (data, idx) => {
+    if (data) console.log('光标:', data.price ?? data.close);
+  },
+});</div>
+</div>
 
-<h3>KLineChartConfig 配置项</h3>
-<table>
-  <tr><th>属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
-  <tr><td><code>container</code></td><td><span class="type-tag">string</span></td><td><em>必填</em></td><td>容器选择器</td></tr>
-  <tr><td><code>type</code></td><td><span class="type-tag">'kline' | 'tick'</span></td><td><code>'kline'</code></td><td>图表类型</td></tr>
-  <tr><td><code>data</code></td><td><span class="type-tag">KLineData[] | TickData[] | string</span></td><td>-</td><td>数据源或数据URL</td></tr>
-  <tr><td><code>tickData</code></td><td><span class="type-tag">TickData[]</span></td><td>-</td><td>分时数据（type=tick时）</td></tr>
-  <tr><td><code>tickOptions</code></td><td><span class="type-tag">TickChartOptions</span></td><td>-</td><td>分时图配置</td></tr>
-  <tr><td><code>period</code></td><td><span class="type-tag">'day' | 'week' | 'month'</span></td><td><code>'day'</code></td><td>K线周期</td></tr>
-  <tr><td><code>indicators</code></td><td><span class="type-tag">IndicatorConfig[]</span></td><td>-</td><td>指标列表</td></tr>
-  <tr><td><code>options</code></td><td><span class="type-tag">Partial&lt;ChartOptions&gt;</span></td><td>-</td><td>图表选项</td></tr>
-  <tr><td><code>interaction</code></td><td><span class="type-tag">object</span></td><td>-</td><td>交互开关</td></tr>
-  <tr><td><code>onLoad</code></td><td><span class="type-tag">function</span></td><td>-</td><td>数据加载回调</td></tr>
-  <tr><td><code>onClick</code></td><td><span class="type-tag">function</span></td><td>-</td><td>点击回调</td></tr>
-  <tr><td><code>onCrosshairMove</code></td><td><span class="type-tag">function</span></td><td>-</td><td>十字光标移动回调</td></tr>
-</table>
-
-<h2>ChartOptions 图表选项</h2>
-<table>
-  <tr><th>属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
-  <tr><td><code>visibleRange</code></td><td><span class="type-tag">number</span></td><td><code>80</code></td><td>K线默认可见数量</td></tr>
-  <tr><td><code>minVisibleRange</code></td><td><span class="type-tag">number</span></td><td><code>20</code></td><td>最小可见K线数量</td></tr>
-  <tr><td><code>candleGap</code></td><td><span class="type-tag">number</span></td><td><code>2</code></td><td>K线间距(px)</td></tr>
-  <tr><td><code>candleMinWidth</code></td><td><span class="type-tag">number</span></td><td><code>3</code></td><td>K线最小宽度(px)</td></tr>
-  <tr><td><code>candleMaxWidth</code></td><td><span class="type-tag">number</span></td><td><code>40</code></td><td>K线最大宽度(px)</td></tr>
-  <tr><td><code>priceAreaRatio</code></td><td><span class="type-tag">number</span></td><td><code>0.75</code></td><td>价格区域高度占比</td></tr>
-  <tr><td><code>volumeAreaRatio</code></td><td><span class="type-tag">number</span></td><td><code>0.25</code></td><td>成交量区域高度占比</td></tr>
-  <tr><td><code>rightPadding</code></td><td><span class="type-tag">number</span></td><td><code>5</code></td><td>右侧留白K线数</td></tr>
-  <tr><td><code>showVolume</code></td><td><span class="type-tag">boolean</span></td><td><code>true</code></td><td>是否显示成交量</td></tr>
-  <tr><td><code>showGrid</code></td><td><span class="type-tag">boolean</span></td><td><code>true</code></td><td>是否显示网格</td></tr>
-  <tr><td><code>yAxisWidth</code></td><td><span class="type-tag">number</span></td><td><code>80</code></td><td>Y轴标签宽度(px)</td></tr>
-  <tr><td><code>xAxisHeight</code></td><td><span class="type-tag">number</span></td><td><code>28</code></td><td>X轴标签高度(px)</td></tr>
-  <tr><td><code>pixelRatio</code></td><td><span class="type-tag">number</span></td><td><code>devicePixelRatio</code></td><td>像素比</td></tr>
-  <tr><td><code>style</code></td><td><span class="type-tag">ChartStyle</span></td><td>-</td><td>样式配置</td></tr>
-</table>
-
-<h2>ChartStyle 样式配置</h2>
-<table>
-  <tr><th>属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
-  <tr><td><code>backgroundColor</code></td><td><span class="type-tag">string</span></td><td><code>'#1a1a2e'</code></td><td>背景色</td></tr>
-  <tr><td><code>gridColor</code></td><td><span class="type-tag">string</span></td><td><code>'#2a2a4a'</code></td><td>网格线颜色</td></tr>
-  <tr><td><code>gridDash</code></td><td><span class="type-tag">number[]</span></td><td><code>[4, 4]</code></td><td>网格线虚线</td></tr>
-  <tr><td><code>upColor</code></td><td><span class="type-tag">string</span></td><td><code>'#00b894'</code></td><td>涨（阳线）颜色</td></tr>
-  <tr><td><code>downColor</code></td><td><span class="type-tag">string</span></td><td><code>'#ff6b6b'</code></td><td>跌（阴线）颜色</td></tr>
-  <tr><td><code>textColor</code></td><td><span class="type-tag">string</span></td><td><code>'#8888aa'</code></td><td>文字颜色</td></tr>
-  <tr><td><code>crosshairColor</code></td><td><span class="type-tag">string</span></td><td><code>'#8888aa'</code></td><td>十字光标颜色</td></tr>
-  <tr><td><code>maColors</code></td><td><span class="type-tag">string[]</span></td><td><code>[5色]</code></td><td>MA均线颜色</td></tr>
-  <tr><td><code>volumeUpColor</code></td><td><span class="type-tag">string</span></td><td><code>'rgba(0,184,148,0.5)'</code></td><td>成交量涨色</td></tr>
-  <tr><td><code>volumeDownColor</code></td><td><span class="type-tag">string</span></td><td><code>'rgba(255,107,107,0.5)'</code></td><td>成交量跌色</td></tr>
-  <tr><td><code>candleBorderWidth</code></td><td><span class="type-tag">number</span></td><td><code>1</code></td><td>K线边框宽度</td></tr>
-  <tr><td><code>tickLineColor</code></td><td><span class="type-tag">string</span></td><td><code>'#4d96ff'</code></td><td>分时价格线颜色</td></tr>
-  <tr><td><code>tickAvgColor</code></td><td><span class="type-tag">string</span></td><td><code>'#ffd93d'</code></td><td>分时均价线颜色</td></tr>
-  <tr><td><code>tickBaseColor</code></td><td><span class="type-tag">string</span></td><td><code>'#8888aa'</code></td><td>分时基准线颜色</td></tr>
-  <tr><td><code>tickFillUpColor</code></td><td><span class="type-tag">string</span></td><td><code>'rgba(0,184,148,0.15)'</code></td><td>分时涨填充色</td></tr>
-  <tr><td><code>tickFillDownColor</code></td><td><span class="type-tag">string</span></td><td><code>'rgba(255,107,107,0.15)'</code></td><td>分时跌填充色</td></tr>
-</table>
-
-<h2>TickChartOptions 分时图配置</h2>
-<table>
-  <tr><th>属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
-  <tr><td><code>prevClose</code></td><td><span class="type-tag">number</span></td><td>-</td><td>昨日收盘价（必填，基准线）</td></tr>
-  <tr><td><code>openTime</code></td><td><span class="type-tag">number</span></td><td><code>930</code></td><td>开盘时间（如 930 = 9:30）</td></tr>
-  <tr><td><code>closeTime</code></td><td><span class="type-tag">number</span></td><td><code>1500</code></td><td>收盘时间</td></tr>
-  <tr><td><code>lunchStart</code></td><td><span class="type-tag">number</span></td><td><code>1130</code></td><td>午休开始时间</td></tr>
-  <tr><td><code>lunchEnd</code></td><td><span class="type-tag">number</span></td><td><code>1300</code></td><td>午休结束时间</td></tr>
-  <tr><td><code>visiblePoints</code></td><td><span class="type-tag">number</span></td><td><code>0</code></td><td>展示数据点数（0=全部）</td></tr>
-</table>
-
-<h2>IndicatorConfig 指标配置</h2>
-<table>
-  <tr><th>属性</th><th>类型</th><th>说明</th></tr>
-  <tr><td><code>type</code></td><td><span class="type-tag">'ma' | 'boll'</span></td><td>指标类型</td></tr>
-  <tr><td><code>params</code></td><td><span class="type-tag">object</span></td><td>指标参数</td></tr>
-</table>
-<h3>MA 参数</h3>
-<pre>{ type: 'ma', params: { periods: [5, 10, 20, 30, 60] } }</pre>
-<h3>BOLL 参数</h3>
-<pre>{ type: 'boll', params: { period: 20, multiplier: 2 } }</pre>
-
-<h2>数据格式</h2>
-<h3>KLineData</h3>
-<pre>interface KLineData {
-  timestamp: number;   // 时间戳(ms)
-  open: number;        // 开盘价
-  high: number;        // 最高价
-  low: number;         // 最低价
-  close: number;       // 收盘价
-  volume: number;      // 成交量
-}</pre>
-<h3>TickData</h3>
-<pre>interface TickData {
-  timestamp: number;   // 时间戳(ms)
-  price: number;       // 当前价格
-  volume: number;      // 成交量
-  avgPrice?: number;   // 均价（可选）
-}</pre>
-
-<h2>交互开关 interaction</h2>
-<table>
-  <tr><th>属性</th><th>类型</th><th>默认值</th><th>说明</th></tr>
-  <tr><td><code>drag</code></td><td><span class="type-tag">boolean</span></td><td><code>true</code></td><td>拖拽平移</td></tr>
-  <tr><td><code>zoom</code></td><td><span class="type-tag">boolean</span></td><td><code>true</code></td><td>滚轮缩放</td></tr>
-  <tr><td><code>crosshair</code></td><td><span class="type-tag">boolean</span></td><td><code>true</code></td><td>十字光标</td></tr>
-  <tr><td><code>touch</code></td><td><span class="type-tag">boolean</span></td><td><code>true</code></td><td>触摸手势</td></tr>
-</table>
-
-<h2>实例方法</h2>
-<table>
-  <tr><th>方法</th><th>返回</th><th>说明</th></tr>
-  <tr><td><code>setData(data)</code></td><td><span class="type-tag">this</span></td><td>设置K线数据</td></tr>
-  <tr><td><code>setTickData(data, options?)</code></td><td><span class="type-tag">this</span></td><td>设置分时数据</td></tr>
-  <tr><td><code>setTickOptions(options)</code></td><td><span class="type-tag">this</span></td><td>更新分时配置</td></tr>
-  <tr><td><code>setType(type)</code></td><td><span class="type-tag">this</span></td><td>切换图表类型</td></tr>
-  <tr><td><code>setPeriod(period)</code></td><td><span class="type-tag">this</span></td><td>切换K线周期</td></tr>
-  <tr><td><code>setIndicatorConfigs(configs)</code></td><td><span class="type-tag">this</span></td><td>设置指标配置</td></tr>
-  <tr><td><code>setIndicators(indicators)</code></td><td><span class="type-tag">this</span></td><td>设置指标（传统方式）</td></tr>
-  <tr><td><code>getType()</code></td><td><span class="type-tag">string</span></td><td>获取当前图表类型</td></tr>
-  <tr><td><code>getKlineData()</code></td><td><span class="type-tag">KLineData[]</span></td><td>获取K线数据</td></tr>
-  <tr><td><code>getTickData()</code></td><td><span class="type-tag">TickData[]</span></td><td>获取分时数据</td></tr>
-  <tr><td><code>destroy()</code></td><td><span class="type-tag">void</span></td><td>销毁图表</td></tr>
-</table>
-
-<h2>模拟数据工具</h2>
-<pre>import { generateMockData, generateTickData } from 'ai-stock-chart';
-
-const klineData = generateMockData(200, 100);    // 200根K线，基准价100
-const tickData = generateTickData(50.88, 240);   // 240个分钟点，昨收50.88</pre>
+<!-- 工具函数 -->
+<div id="doc-utils" class="doc-section">
+  <h2>工具函数</h2>
+  <table class="method-table">
+    <tr><th style="color:#8888aa;font-size:12px">函数</th><th style="color:#8888aa;font-size:12px">参数</th><th style="color:#8888aa;font-size:12px">返回值</th><th style="color:#8888aa;font-size:12px">说明</th></tr>
+    <tr><td class="method-name">generateMockData</td><td style="color:#4d96ff">(count, basePrice)</td><td class="method-ret">KLineData[]</td><td class="method-desc">生成模拟 K线数据。</td></tr>
+    <tr><td class="method-name">generateTickData</td><td style="color:#4d96ff">(basePrice, count)</td><td class="method-ret">TickData[]</td><td class="method-desc">生成模拟分时数据。</td></tr>
+    <tr><td class="method-name">calcMA</td><td style="color:#4d96ff">(klines, periods?)</td><td class="method-ret">IndicatorResult</td><td class="method-desc">计算 MA 均线指标。</td></tr>
+    <tr><td class="method-name">calcBOLL</td><td style="color:#4d96ff">(klines, period?, mult?)</td><td class="method-ret">IndicatorResult</td><td class="method-desc">计算 BOLL 布林带指标。</td></tr>
+    <tr><td class="method-name">toWeekly</td><td style="color:#4d96ff">(klines)</td><td class="method-ret">KLineData[]</td><td class="method-desc">将日K数据聚合为周K。</td></tr>
+    <tr><td class="method-name">toMonthly</td><td style="color:#4d96ff">(klines)</td><td class="method-ret">KLineData[]</td><td class="method-desc">将日K数据聚合为月K。</td></tr>
+  </table>
+</div>
 `;

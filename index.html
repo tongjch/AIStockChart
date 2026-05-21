@@ -12,15 +12,15 @@
     /* 顶部导航 */
     .header {
       display: flex; align-items: center; gap: 24px;
-      padding: 12px 24px; border-bottom: 1px solid #2a2a4a;
-      background: #16162b;
+      padding: 10px 24px; border-bottom: 1px solid #2a2a4a;
+      background: #16162b; flex-shrink: 0;
     }
     .header .logo { font-size: 18px; font-weight: 700; color: #fff; }
     .header .logo span { color: #4d96ff; }
     .nav-tabs { display: flex; gap: 4px; }
     .nav-tab {
-      padding: 6px 20px; border-radius: 4px; cursor: pointer;
-      font-size: 14px; color: #8888aa; background: none; border: none;
+      padding: 5px 18px; border-radius: 4px; cursor: pointer;
+      font-size: 13px; color: #8888aa; background: none; border: none;
     }
     .nav-tab:hover { color: #c0c0e0; }
     .nav-tab.active { background: #4a4aff; color: #fff; }
@@ -29,26 +29,21 @@
     .page { display: none; flex: 1; overflow: hidden; }
     .page.active { display: flex; }
 
-    /* 左侧示例列表 */
     .sidebar {
       width: 260px; border-right: 1px solid #2a2a4a;
-      overflow-y: auto; background: #16162b; padding: 12px 0;
+      overflow-y: auto; background: #16162b; padding: 12px 0; flex-shrink: 0;
     }
     .sidebar-item {
       padding: 10px 20px; cursor: pointer; font-size: 13px;
       color: #8888aa; border-left: 3px solid transparent;
     }
     .sidebar-item:hover { color: #c0c0e0; background: #1e1e38; }
-    .sidebar-item.active {
-      color: #fff; border-left-color: #4d96ff;
-      background: #1e1e38;
-    }
+    .sidebar-item.active { color: #fff; border-left-color: #4d96ff; background: #1e1e38; }
 
-    /* 右侧内容 */
-    .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
     .example-toolbar {
       display: flex; gap: 8px; padding: 12px 16px;
-      align-items: center; border-bottom: 1px solid #2a2a4a; flex-wrap: wrap;
+      align-items: center; border-bottom: 1px solid #2a2a4a; flex-wrap: wrap; flex-shrink: 0;
     }
     .example-toolbar button {
       padding: 5px 14px; border: 1px solid #3a3a5c; background: #252540;
@@ -60,43 +55,130 @@
     .example-body { flex: 1; display: flex; overflow: hidden; }
     #chart-container { flex: 1; min-width: 0; }
     .code-panel {
-      width: 420px; border-left: 1px solid #2a2a4a;
+      width: 400px; border-left: 1px solid #2a2a4a;
       overflow-y: auto; background: #12122a; padding: 16px;
       font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px;
-      line-height: 1.6; white-space: pre-wrap; color: #c0c0e0;
+      line-height: 1.6; white-space: pre-wrap; color: #c0c0e0; flex-shrink: 0;
     }
 
-    /* 文档页 */
-    .doc-page { flex: 1; overflow-y: auto; padding: 32px 48px; }
-    .doc-page h1 { color: #fff; font-size: 28px; margin-bottom: 8px; }
-    .doc-page h2 { color: #fff; font-size: 20px; margin: 28px 0 12px; padding-top: 16px; border-top: 1px solid #2a2a4a; }
-    .doc-page h3 { color: #4d96ff; font-size: 16px; margin: 20px 0 8px; }
-    .doc-page p { margin: 8px 0; line-height: 1.7; }
-    .doc-page code {
-      background: #252540; padding: 2px 6px; border-radius: 3px;
-      font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; color: #ffd93d;
+    /* ====== 文档页（ECharts 风格）====== */
+    .doc-layout { display: flex; flex: 1; overflow: hidden; }
+    .doc-nav {
+      width: 240px; border-right: 1px solid #2a2a4a;
+      overflow-y: auto; background: #16162b; flex-shrink: 0;
+      padding: 8px 0;
     }
-    .doc-page pre {
+    .doc-nav-title {
+      padding: 8px 16px; font-size: 11px; color: #666;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .doc-nav-item {
+      padding: 6px 16px 6px 24px; cursor: pointer;
+      font-size: 13px; color: #8888aa; transition: all 0.15s;
+    }
+    .doc-nav-item:hover { color: #c0c0e0; background: #1e1e38; }
+    .doc-nav-item.active { color: #4d96ff; background: #1e1e38; border-right: 2px solid #4d96ff; }
+    .doc-nav-item.sub { padding-left: 40px; font-size: 12px; }
+
+    .doc-main {
+      flex: 1; overflow-y: auto; padding: 24px 40px;
+      min-width: 0;
+    }
+
+    /* 文档内容样式 */
+    .doc-main h1 {
+      font-size: 24px; color: #fff; margin-bottom: 6px; font-weight: 600;
+    }
+    .doc-main .desc { color: #8888aa; margin-bottom: 24px; font-size: 14px; }
+
+    .doc-section { margin-bottom: 32px; }
+    .doc-section > h2 {
+      font-size: 18px; color: #fff; padding: 10px 0;
+      border-bottom: 1px solid #2a2a4a; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .doc-section > h2 .tag {
+      font-size: 11px; background: #252540; color: #8888aa;
+      padding: 2px 8px; border-radius: 3px; font-weight: 400;
+    }
+
+    /* 配置项表格 */
+    .config-table {
+      width: 100%; border-collapse: collapse; margin-bottom: 16px;
+    }
+    .config-table tr { border-bottom: 1px solid #252540; }
+    .config-table tr:last-child { border-bottom: none; }
+    .config-table td { padding: 10px 12px; vertical-align: top; font-size: 13px; line-height: 1.6; }
+    .config-table .cfg-name {
+      color: #ffd93d; font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px; white-space: nowrap; width: 180px;
+    }
+    .config-table .cfg-type {
+      color: #4d96ff; font-size: 12px; width: 120px; white-space: nowrap;
+    }
+    .config-table .cfg-default {
+      color: #6bcb77; font-size: 12px; width: 140px; white-space: nowrap;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+    .config-table .cfg-desc { color: #a0a0c0; }
+    .config-table .cfg-desc code {
+      background: #252540; padding: 1px 5px; border-radius: 3px;
+      font-size: 12px; color: #ffd93d;
+    }
+
+    /* 子配置组 */
+    .config-group {
+      background: #16162b; border: 1px solid #2a2a4a;
+      border-radius: 6px; margin-bottom: 12px; overflow: hidden;
+    }
+    .config-group-header {
+      padding: 10px 14px; cursor: pointer; display: flex;
+      align-items: center; justify-content: space-between;
+      font-size: 14px; color: #fff; background: #1e1e38;
+      user-select: none;
+    }
+    .config-group-header:hover { background: #252545; }
+    .config-group-header .arrow {
+      transition: transform 0.2s; font-size: 12px; color: #8888aa;
+    }
+    .config-group-header.open .arrow { transform: rotate(90deg); }
+    .config-group-body { display: none; }
+    .config-group-body.open { display: block; }
+
+    /* 方法表格 */
+    .method-table {
+      width: 100%; border-collapse: collapse; margin-bottom: 16px;
+    }
+    .method-table tr { border-bottom: 1px solid #252540; }
+    .method-table td { padding: 10px 12px; vertical-align: top; font-size: 13px; }
+    .method-table .method-name {
+      color: #ffd93d; font-family: 'SF Mono', monospace; font-size: 13px;
+    }
+    .method-table .method-ret {
+      color: #4d96ff; font-size: 12px; width: 100px;
+    }
+    .method-table .method-desc { color: #a0a0c0; }
+
+    /* 代码块 */
+    .doc-code {
       background: #12122a; border: 1px solid #2a2a4a; border-radius: 6px;
-      padding: 16px; margin: 12px 0; overflow-x: auto;
+      padding: 14px 16px; margin: 12px 0; overflow-x: auto;
       font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px;
-      line-height: 1.6; color: #c0c0e0;
+      line-height: 1.7; color: #c0c0e0;
     }
-    .doc-page table {
-      width: 100%; border-collapse: collapse; margin: 12px 0;
-    }
-    .doc-page th {
-      text-align: left; padding: 8px 12px; background: #252540;
-      color: #fff; font-size: 13px; border: 1px solid #2a2a4a;
-    }
-    .doc-page td {
-      padding: 8px 12px; border: 1px solid #2a2a4a; font-size: 13px;
-    }
-    .doc-page td code { background: none; padding: 0; color: #ffd93d; }
-    .doc-page .type-tag {
-      background: #3a3a5c; padding: 1px 6px; border-radius: 3px;
-      font-size: 11px; color: #a0a0c0;
-    }
+
+    /* 事件表格 */
+    .event-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    .event-table tr { border-bottom: 1px solid #252540; }
+    .event-table td { padding: 10px 12px; vertical-align: top; font-size: 13px; }
+    .event-table .event-name { color: #ffd93d; font-family: 'SF Mono', monospace; }
+    .event-table .event-desc { color: #a0a0c0; }
+
+    /* 滚动条 */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #3a3a5c; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4a4a6c; }
   </style>
 </head>
 <body>
@@ -132,7 +214,10 @@
 
     <!-- 文档页 -->
     <div class="page" id="page-docs">
-      <div class="doc-page" id="doc-content"></div>
+      <div class="doc-layout">
+        <div class="doc-nav" id="doc-nav"></div>
+        <div class="doc-main" id="doc-main"></div>
+      </div>
     </div>
   </div>
   <script type="module" src="/src/demo.ts"></script>
