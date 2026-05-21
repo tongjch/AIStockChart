@@ -465,7 +465,7 @@ export class KLineChart {
     this.canvas.addEventListener('wheel', (e) => {
       if (!this.interaction.zoom || this.chartType !== 'kline' || !this.klineRenderer) return;
       e.preventDefault();
-      const delta = e.deltaY > 0 ? 5 : -5;
+      const delta = e.deltaY > 0 ? -5 : 5;
       this.klineRenderer.zoom(delta);
     }, { passive: false });
 
@@ -503,7 +503,7 @@ export class KLineChart {
           e.touches[0].clientX - e.touches[1].clientX,
           e.touches[0].clientY - e.touches[1].clientY
         );
-        const delta = Math.round((lastTouchDist - dist) / 10);
+        const delta = Math.round((dist - lastTouchDist) / 10);
         lastTouchDist = dist;
         this.klineRenderer.zoom(delta);
       }
