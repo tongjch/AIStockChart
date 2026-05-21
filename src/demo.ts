@@ -644,11 +644,10 @@ const chart = KLineChart.create({
     fetch: async ({ direction, fromTimestamp, count }) => {
       // direction = 'prev' 时，fromTimestamp 是当前最早的数据时间戳
       // 后端据此返回更早的 count 条数据
-      const resp = await fetch(
-        `/api/kline?page&direction=${direction}`
-        + (fromTimestamp ? `&from=${fromTimestamp}` : '')
-        + `&count=${count}`
-      );
+      const url = '/api/kline/page?direction=' + direction
+        + (fromTimestamp ? '&from=' + fromTimestamp : '')
+        + '&count=' + count;
+      const resp = await fetch(url);
       return resp.json();
     },
   },
