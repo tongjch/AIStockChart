@@ -239,6 +239,10 @@ const chart = KLineChart.create({
 
   'lazy-load': {
     name: '分段加载',
+    toolbar: `<button class="period-btn active" data-period="day">日K</button>
+      <button class="period-btn" data-period="week">周K</button>
+      <button class="period-btn" data-period="month">月K</button>
+      <button class="ind-btn active" data-ind="ma">MA</button>`,
     code: `// dataLoader 配置：拖动到左边缘自动加载更多历史数据
 // dragSpeed: 3 加快拖拽速度（默认1）
 const chart = KLineChart.create({
@@ -270,26 +274,36 @@ const chart = KLineChart.create({
 
 // 向左拖动图表，到达阈值后会自动加载更早的数据
 // 无缝拼接，视图位置保持不变`,
-    render: (c) => KLineChart.create({
-      container: c, type: 'kline',
-      data: generateMockData(300, 50),
-      indicators: [{ type: 'ma', params: { periods: [5, 10, 20, 60] } }],
-      options: { visibleRange: 80 },
-      interaction: { dragSpeed: 3 },
-      dataLoader: {
-        pageSize: 300,
-        preloadThreshold: 20,
-        fetch: async (params) => {
-          const { direction, fromTimestamp, count } = params;
-          const resp = await fetch(
-            `/api/kline/page?direction=${direction}`
-            + (fromTimestamp ? `&fromTimestamp=${fromTimestamp}` : '')
-            + `&count=${count}`
-          );
-          return resp.json();
+    render: (c) => {
+      const chart = KLineChart.create({
+        container: c, type: 'kline',
+        data: generateMockData(300, 50),
+        indicators: [{ type: 'ma', params: { periods: [5, 10, 20, 60] } }],
+        options: { visibleRange: 80 },
+        interaction: { dragSpeed: 3 },
+        dataLoader: {
+          pageSize: 300,
+          preloadThreshold: 20,
+          fetch: async (params) => {
+            const { direction, fromTimestamp, count } = params;
+            const resp = await fetch(
+              `/api/kline/page?direction=${direction}`
+              + (fromTimestamp ? `&fromTimestamp=${fromTimestamp}` : '')
+              + `&count=${count}`
+            );
+            return resp.json();
+          },
         },
-      },
-    }),
+      });
+      document.querySelectorAll('#example-toolbar .period-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#example-toolbar .period-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          chart.setPeriod((btn as HTMLElement).dataset.period as any);
+        });
+      });
+      return chart;
+    },
   },
 };
 
